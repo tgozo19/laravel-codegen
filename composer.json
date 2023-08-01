@@ -1,0 +1,15 @@
+{
+    "name": "tgozo/laravel-codegen",
+    "autoload": {
+        "psr-4": {
+            "Tgozo\\LaravelCodegen\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Takudzwa Gozo",
+            "email": "thetakudzwagozo@gmail.com"
+        }
+    ],
+    "require": {}
+}
