@@ -1,6 +1,6 @@
 <?php
 
-namespace Tgozo\CodeGenerator\Console\Commands;
+namespace Tgozo\LaravelCodegen\Console\Commands;
 
 class Migration extends MigrationBaseGenerator
 {
@@ -33,7 +33,7 @@ class Migration extends MigrationBaseGenerator
      *
      * @return void
      */
-    public function handle()
+    public function handle(): void
     {
         $name = $this->getMigrationName();
 
