@@ -74,7 +74,16 @@ class MigrationBaseGenerator extends Command
             if ($nullable) {
                 $default = null;
             } else {
-                $default = $this->ask('What is the default value of the field?');
+                // if type is boolean, the accepted value should either be true or false
+                if ($type === 'boolean') {
+                    $default = $this->ask('What is the default value of the field? (true/false)');
+                    while (!in_array($default, ['true', 'false'])) {
+                        $this->error("The {$default} value is not valid!. Accepted values are: true, false.");
+                        $default = $this->ask('What is the default value of the field? (true/false)');
+                    }
+                } else {
+                    $default = $this->ask('What is the default value of the field?');
+                }
             }
 
             $fields[] = [
@@ -126,7 +135,12 @@ class MigrationBaseGenerator extends Command
             }
 
             if (!empty($field['default'])) {
-                $fieldsString .= "->default('{$field['default']}')";
+                // if type is boolean, remove quotes from default value
+                if ($field['type'] == 'boolean') {
+                    $field['default'] = str_replace("'", '', $field['default']);
+                }else{
+                    $fieldsString .= "->default('{$field['default']}')";
+                }
             }
 
             $fieldsString .= ';' . PHP_EOL . "\t\t\t";
