@@ -1,5 +1,6 @@
 {
     "name": "tgozo/laravel-codegen",
+    "license": "MIT",
     "autoload": {
         "psr-4": {
             "Tgozo\\LaravelCodegen\\": "src/"
