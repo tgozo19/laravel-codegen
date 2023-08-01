@@ -1,6 +1,6 @@
 <?php
 
-namespace Tgozo\CodeGenerator\Console\Commands;
+namespace Tgozo\LaravelCodegen\Console\Commands;
 
 class Migration extends MigrationBaseGenerator
 {

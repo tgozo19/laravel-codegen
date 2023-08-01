@@ -1,13 +1,14 @@
 <?php
 
-namespace Tgozo\CodeGenerator;
+namespace Tgozo\LaravelCodegen;
 
 use Illuminate\Support\ServiceProvider;
+use Tgozo\LaravelCodegen\Console\Commands\Migration;
 
 class CodeGenServiceProvider extends ServiceProvider
 {
     protected array $commands = [
-        Console\Commands\Migration::class,
+        Migration::class,
     ];
 
     public function register(): void
