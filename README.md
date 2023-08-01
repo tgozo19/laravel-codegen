@@ -40,7 +40,10 @@ At this point you will be good enough to enjoy the magic provided by this packag
 
 ## Usage
 
-To create a migration
+To create a migration. Execute the following command from the root of your Laravel project
+```
+php artisan codegen:migration --with-fields
+```
 The migration names should follow certain patterns.
 
 ```
