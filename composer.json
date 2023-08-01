@@ -12,5 +12,6 @@
             "email": "thetakudzwagozo@gmail.com"
         }
     ],
-    "require": {}
+    "require": {},
+    "minimum-stability": "dev"
 }

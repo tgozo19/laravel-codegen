@@ -335,7 +335,6 @@ class MigrationBaseGenerator extends Command
             $valid_options = $this->get_option_values($options, $this->valid_options);
 
             foreach ($valid_options as $key => $valid_option) {
-                $this->error("{$key} ---- {$valid_option}");
                 $action = $this->option_actions[$key];
                 if ($action === true){
                     $fields[$index][$key] = true;
