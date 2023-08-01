@@ -33,7 +33,7 @@ class Migration extends MigrationBaseGenerator
      *
      * @return void
      */
-    public function handle()
+    public function handle(): void
     {
         $name = $this->getMigrationName();
 

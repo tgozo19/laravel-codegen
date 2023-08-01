@@ -3,9 +3,11 @@
 namespace Tgozo\LaravelCodegen\Console\Commands;
 
 use Illuminate\Console\Command;
+use Tgozo\LaravelCodegen\Traits\PathTrait;
 
 class MigrationBaseGenerator extends Command
 {
+    use PathTrait;
     private array $types = [
         'string', 'text', 'integer', 'bigInteger', 'unsignedBigInteger', 'mediumInteger', 'tinyInteger', 'unsignedInteger', 'unsignedMediumInteger', 'unsignedSmallInteger', 'unsignedTinyInteger', 'decimal', 'unsignedDecimal', 'float', 'double', 'boolean', 'enum', 'json', 'jsonb', 'date', 'dateTime', 'dateTimeTz', 'time', 'timeTz', 'timestamp', 'timestampTz', 'year', 'binary', 'uuid', 'ipAddress', 'macAddress'
     ];
@@ -48,10 +50,14 @@ class MigrationBaseGenerator extends Command
         'primary_key' => ['nullable', 'default'],
         'unique' => ['nullable', 'default'],
         'index' => ['nullable', 'default'],
+        'after' => ['first'],
+        'first' => ['after'],
     ];
 
-    // common column names used in MySQL databases, along with their associated data types:
-    // the data types should be derived from a Laravel column modifier for example VARCHAR should be string
+    private array $stub_names = [
+        'create_' => 'create',
+    ];
+
     public array $common_columns = [
         'id' => ['bigIncrements', 'unsignedBigInteger', 'increments', 'unsignedInteger'],
         'name' => ['string'],
@@ -145,9 +151,6 @@ class MigrationBaseGenerator extends Command
 
     private function get_option_values($options, $valid_options): array
     {
-        foreach ($options as $option) {
-            $this->error("passed values are {$option}");
-        }
         if (empty($options) || gettype($options) === 'string') return [];
         $option_values = [];
         foreach ($options as $value) {
@@ -275,7 +278,18 @@ class MigrationBaseGenerator extends Command
                 'type' => $type,
                 'autoIncrement' => false,
                 'nullable' => false,
-                'default' => ''
+                'default' => '',
+                'first' => false,
+                'unique' => false,
+                'after' => '',
+                'charset' => '',
+                'collation' => '',
+                'comment' => '',
+                'storedAs' => '',
+                'unsigned' => false,
+                'useCurrent' => false,
+                'useCurrentOnUpdate' => false,
+                'virtualAs' => false,
             ];
 
             // ask for options
@@ -415,7 +429,9 @@ class MigrationBaseGenerator extends Command
     {
         $fieldsString = '';
 
-        foreach ($fields as $field) {
+        $fields_count = count($fields);
+
+        foreach ($fields as $index => $field) {
             $fieldsString .= "\$table->{$field['type']}('{$field['name']}')";
 
             if ($field['autoIncrement']) {
@@ -427,18 +443,73 @@ class MigrationBaseGenerator extends Command
             }
 
             if (!empty($field['default'])) {
-                // if type is boolean, remove quotes from default value
-
                 if ($field['type'] !== 'boolean' && !in_array($field['type'], $this->numberTypes)) {
                     $field['default'] = "'" . $field['default'] . "'";
                 }
                 $fieldsString .= "->default({$field['default']})";
             }
 
-            $fieldsString .= ';' . PHP_EOL . "\t\t\t";
+            if ($field['first']) {
+                $fieldsString .= '->first()';
+            }
+
+            if ($field['useCurrentOnUpdate']) {
+                $fieldsString .= '->useCurrentOnUpdate()';
+            }
+
+            if (!empty($field['collation'])) {
+                $fieldsString .= "->collation('{$field['collation']}')";
+            }
+
+            if (!empty($field['charset'])) {
+                $fieldsString .= "->charset('{$field['charset']}')";
+            }
+
+            if (!empty($field['comment'])) {
+                $fieldsString .= "->comment('{$field['comment']}')";
+            }
+
+            if ($field['unsigned']) {
+                $fieldsString .= '->unsigned()';
+            }
+
+            if ($field['useCurrent']) {
+                $fieldsString .= '->useCurrent()';
+            }
+
+            if (!empty($field['storedAs'])) {
+                $fieldsString .= "->storedAs('{$field['storedAs']}')";
+            }
+
+            if (!empty($field['virtualAs'])) {
+                $fieldsString .= "->virtualAs('{$field['virtualAs']}')";
+            }
+
+            if ($field['unique']) {
+                $fieldsString .= '->unique()';
+            }
+
+            if (!empty($field['after'])) {
+                $fieldsString .= "->after('{$field['after']}')";
+            }
+
+            if ($field['first']) {
+                $fieldsString .= '->first()';
+            }
+
+            $fieldsString .= ';';
+
+            if($index !== $fields_count - 1){
+                $fieldsString .=  PHP_EOL . "\t\t\t";
+            }
         }
 
         return $fieldsString;
+    }
+
+    public function getStubName($migrationName)
+    {
+        return $this->stub_names[$this->checkStart($migrationName)];
     }
 
     public function createMigration($migrationName, $fields): void
@@ -447,7 +518,10 @@ class MigrationBaseGenerator extends Command
 
         $migrationFile = database_path('migrations') . '/' . date('Y_m_d_His') . '_' . $migrationName . '.php';
 
-        $stub = file_get_contents(__DIR__ . '/stubs/migration.create.stub');
+        $stubName = $this->getStubName($migrationName);
+        $codegen_path = $this->codegen_path("stubs/migration.{$stubName}.stub");
+
+        $stub = file_get_contents($codegen_path);
 
         $stub = str_replace('{{ tableName }}', $tableName, $stub);
 
