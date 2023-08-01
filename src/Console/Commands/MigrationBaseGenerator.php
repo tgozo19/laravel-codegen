@@ -255,10 +255,15 @@ class MigrationBaseGenerator extends Command
                 break;
             }
 
-            $type = $this->ask('What is the type of the field?');
-
-            // TODO
-            // check for common data types for the give column type, allow option to specify other type which is not in the suggested types
+            $has_suggestions = array_key_exists($name, $this->common_columns);
+            if ($has_suggestions){
+                $type = $this->choice('Select the type of the field?', [...$this->common_columns[$name], "Other"]);
+                if ($type === 'Other'){
+                    $type = $this->ask('What is the type of the field?');
+                }
+            }else{
+                $type = $this->ask('What is the type of the field?');
+            }
 
             while (!in_array($type, $this->types)) {
                 $this->error("The {$type} type is not valid!. Accepted types are: " . implode(', ', $this->types) . ".");
