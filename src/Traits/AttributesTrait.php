@@ -96,4 +96,15 @@ trait AttributesTrait
         'updated_at' => ['timestamp', 'timestampTz', 'dateTime', 'dateTimeTz'],
         'deleted_at' => ['timestamp', 'timestampTz', 'dateTime', 'dateTimeTz'],
     ];
+
+    private array $modifiers_incompatible_types = [
+        'autoIncrement' => ['string', 'char', 'date', 'dateTime', 'dateTimeTz', 'time', 'timeTz', 'timestamp', 'timestampTz', 'text', 'mediumText', 'longText', 'json', 'jsonb', 'binary', 'uuid'],
+        'charset' => ['integer', 'bigInteger', 'mediumInteger', 'smallInteger', 'tinyInteger', 'float', 'double', 'decimal'],
+        'collation' => ['integer', 'bigInteger', 'mediumInteger', 'smallInteger', 'tinyInteger', 'float', 'double', 'decimal'],
+        'default' => [],
+        'nullable' => [],
+        'unsigned' => ['char','date','dateTime','dateTimeTz','time','timeTz','timestamp','timestampTz','text','mediumText','longText','json','jsonb','binary','uuid'],
+        'useCurrent' => ['char','integer','bigInteger','mediumInteger','smallInteger','tinyInteger','float','double','decimal','text','mediumText','longText','json','jsonb','binary','uuid']
+    ];
+
 }

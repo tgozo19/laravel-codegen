@@ -150,6 +150,38 @@ class MigrationBaseGenerator extends Command
         return $incompatible_array;
     }
 
+    public function check_modifier_against_type($options, $type): void
+    {
+        $errors = [];
+        if ($type === "") return;
+        if (empty($options)) return;
+        foreach ($options as $option) {
+            if (strlen($option) === 0) continue;
+            $position = strpos($option, ":");
+            if ($position !== false){
+                $option = substr($option, 0, $position);
+            }
+
+            if (array_key_exists($option, $this->modifiers_incompatible_types)){
+                $not_compatible_with = $this->modifiers_incompatible_types[$option];
+                if (in_array($type, $not_compatible_with)){
+                    $errors[$option] = $type;
+                }
+            }
+        }
+
+        if (!empty($errors)){
+            foreach ($errors as $key => $error) {
+                $this->error("The option {$key} is not compatible with the type {$error}");
+            }
+
+            $options = $this->askForOptions();
+
+            $this->check_modifier_against_type($options, $type);
+        }
+
+    }
+
     public function getFields(): array
     {
         $fields = [];
@@ -202,57 +234,11 @@ class MigrationBaseGenerator extends Command
             ];
 
             // ask for options
-            $options_response = $this->ask("Specify any other options. Options should be comma seperated eg. nullable,default:true ");
-            $options = explode(",", $options_response);
+            $options = $this->askForOptions();
 
-            $invalid_options = $this->validate_options($options, $this->valid_options);
-            while(!empty($invalid_options)){
-                $options_response = $this->ask("Specify any other options. Options should be comma seperated eg. nullable,default:true ");
-                $options = explode(",", $options_response);
-                $invalid_options = $this->validate_options($options, $this->valid_options);
-            }
+            $this->check_modifier_against_type($options, $type);
 
-            // check among the provided options if there are options which are not compatible with each other, e.g. nullable and default and raise error
-            $incompatible_array = $this->checkForCompatibleOptions($options);
-            $invalid_values = $this->validate_option_values($fields[$index]['type'], $options);
-            while(!empty($incompatible_array) || !empty($invalid_values)){
-                $array_keys = array_keys($incompatible_array);
-                foreach ($array_keys as $array_key) {
-                    $this->error("The {$array_key} option is not compatible with the " . implode(', ', $incompatible_array[$array_key]) . " option.");
-                }
-
-                foreach ($invalid_values as $invalid_key => $invalid_value) {
-                    $this->error("Value for {$invalid_key} {$invalid_value}");
-                }
-
-                $options_response = $this->ask("Specify the options again. Options should be comma seperated eg. nullable,default:true ");
-                $options = explode(",", $options_response);
-
-                $invalid_options = $this->validate_options($options, $this->valid_options);
-                while(!empty($invalid_options)){
-                    $options_response = $this->ask("Specify any other options. Options should be comma seperated eg. nullable,default:true ");
-                    $options = explode(",", $options_response);
-                    $invalid_options = $this->validate_options($options, $this->valid_options);
-                }
-
-                $incompatible_array = $this->checkForCompatibleOptions($options);
-                $invalid_values = $this->validate_option_values($fields[$index]['type'], $options);
-            }
-
-            $options = empty($options) ? [] : $options;
-
-            $valid_options = $this->get_option_values($options, $this->valid_options);
-
-            foreach ($valid_options as $key => $valid_option) {
-                $action = $this->option_actions[$key];
-                if ($action === true){
-                    $fields[$index][$key] = true;
-                }
-
-                if ($action === "take_value"){
-                    $fields[$index][$key] = $valid_option;
-                }
-            }
+            list($fields) = $this->receive_options($options, $fields, $index);
 
             $name = $this->ask('Specify a field name (or press <return> to stop adding fields)');
             $index++;
@@ -401,10 +387,6 @@ class MigrationBaseGenerator extends Command
                 $fieldsString .= "->after('{$field['after']}')";
             }
 
-            if ($field['first']) {
-                $fieldsString .= '->first()';
-            }
-
             $fieldsString .= ';';
 
             if($index !== $fields_count - 1){
@@ -438,5 +420,71 @@ class MigrationBaseGenerator extends Command
         $stub = str_replace('{{ fields }}', $fieldsString, $stub);
 
         file_put_contents($migrationFile, $stub);
+    }
+
+    /**
+     * @param array $options
+     * @param array $fields
+     * @param int $index
+     * @return array
+     */
+    public function receive_options(array $options, array $fields, int $index): array
+    {
+        $invalid_options = $this->validate_options($options, $this->valid_options);
+        while (!empty($invalid_options)) {
+            $options = $this->askForOptions();
+            $invalid_options = $this->validate_options($options, $this->valid_options);
+        }
+
+        // check among the provided options if there are options which are not compatible with each other, e.g. nullable and default and raise error
+        $incompatible_array = $this->checkForCompatibleOptions($options);
+        $invalid_values = $this->validate_option_values($fields[$index]['type'], $options);
+        while (!empty($incompatible_array) || !empty($invalid_values)) {
+            $array_keys = array_keys($incompatible_array);
+            foreach ($array_keys as $array_key) {
+                $this->error("The {$array_key} option is not compatible with the " . implode(', ', $incompatible_array[$array_key]) . " option.");
+            }
+
+            foreach ($invalid_values as $invalid_key => $invalid_value) {
+                $this->error("Value for {$invalid_key} {$invalid_value}");
+            }
+
+            $options_response = $this->ask("Specify the options again. Options should be comma seperated eg. nullable,default:true ");
+            $options = explode(",", $options_response);
+
+            $invalid_options = $this->validate_options($options, $this->valid_options);
+            while (!empty($invalid_options)) {
+                $options = $this->askForOptions();
+                $invalid_options = $this->validate_options($options, $this->valid_options);
+            }
+
+            $incompatible_array = $this->checkForCompatibleOptions($options);
+            $invalid_values = $this->validate_option_values($fields[$index]['type'], $options);
+        }
+
+        $options = empty($options) ? [] : $options;
+
+        $valid_options = $this->get_option_values($options, $this->valid_options);
+
+        foreach ($valid_options as $key => $valid_option) {
+            $action = $this->option_actions[$key];
+            if ($action === true) {
+                $fields[$index][$key] = true;
+            }
+
+            if ($action === "take_value") {
+                $fields[$index][$key] = $valid_option;
+            }
+        }
+        return array($fields);
+    }
+
+    /**
+     * @return string[]
+     */
+    public function askForOptions(): array
+    {
+        $options_response = $this->ask("Specify any other options. Options should be comma seperated eg. nullable,default:true ");
+        return explode(",", $options_response);
     }
 }
