@@ -1,6 +1,6 @@
 <?php
 
-namespace Tgozo\LaravelCodegen\Console\Commands;
+namespace Tgozo\LaravelCodegen\Console\Commands\Migrations;
 
 class Migration extends MigrationBaseGenerator
 {
@@ -9,7 +9,7 @@ class Migration extends MigrationBaseGenerator
      *
      * @var string
      */
-    protected $signature = 'codegen:migration {name?} {--with-fields}';
+    protected $signature = 'codegen:migration {name?} {--with-fields} {--m|m} {--c|c}';
 
     /**
      * The console command description.
@@ -35,6 +35,7 @@ class Migration extends MigrationBaseGenerator
      */
     public function handle(): void
     {
+
         $name = $this->getMigrationName();
 
         $fields = [];
@@ -45,6 +46,12 @@ class Migration extends MigrationBaseGenerator
 
         $this->createMigration($name, $fields);
 
-        $this->info('Creating migration: ' . $name);
+        if ($this->option('m')){
+            $modelName = ucfirst($this->getTableName($name));
+            $this->createModel($modelName, $fields);
+            $this->info('Created Model: ' . $modelName);
+        }
+
+        $this->info('Created migration: ' . $name);
     }
 }

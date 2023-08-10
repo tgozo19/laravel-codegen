@@ -3,7 +3,7 @@
 namespace Tgozo\LaravelCodegen;
 
 use Illuminate\Support\ServiceProvider;
-use Tgozo\LaravelCodegen\Console\Commands\Migration;
+use Tgozo\LaravelCodegen\Console\Commands\Migrations\Migration;
 
 class CodeGenServiceProvider extends ServiceProvider
 {
