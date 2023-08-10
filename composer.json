@@ -12,6 +12,8 @@
             "email": "thetakudzwagozo@gmail.com"
         }
     ],
-    "require": {},
+    "require": {
+        "doctrine/inflector": "2.1.x-dev"
+    },
     "minimum-stability": "dev"
 }

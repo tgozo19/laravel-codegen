@@ -1,6 +1,6 @@
 <?php
 
-namespace Tgozo\LaravelCodegen\Traits;
+namespace Tgozo\LaravelCodegen\Console\Commands\Migrations\Traits;
 
 trait AttributesTrait
 {

@@ -1,14 +1,16 @@
 <?php
 
-namespace Tgozo\LaravelCodegen\Console\Commands;
+namespace Tgozo\LaravelCodegen\Console\Commands\Migrations;
 
 use Illuminate\Console\Command;
-use Tgozo\LaravelCodegen\Traits\AttributesTrait;
-use Tgozo\LaravelCodegen\Traits\PathTrait;
+use Tgozo\LaravelCodegen\Console\BaseTrait;
+use Tgozo\LaravelCodegen\Console\Commands\Migrations\Traits\AttributesTrait;
+use Tgozo\LaravelCodegen\Console\Commands\Migrations\Traits\MethodsTrait;
+use Tgozo\LaravelCodegen\Console\Commands\Models\Traits\MethodsTrait as ModelsMethodsTrait;
 
 class MigrationBaseGenerator extends Command
 {
-    use PathTrait, AttributesTrait;
+    use BaseTrait, AttributesTrait, MethodsTrait, ModelsMethodsTrait;
 
     public function getMigrationName()
     {
@@ -397,37 +399,6 @@ class MigrationBaseGenerator extends Command
         return $fieldsString;
     }
 
-    public function getStubName($migrationName)
-    {
-        return $this->stub_names[$this->checkStart($migrationName)];
-    }
-
-    public function createMigration($migrationName, $fields): void
-    {
-        $tableName = $this->getTableName($migrationName);
-
-        $migrationFile = database_path('migrations') . '/' . date('Y_m_d_His') . '_' . $migrationName . '.php';
-
-        $stubName = $this->getStubName($migrationName);
-        $codegen_path = $this->codegen_path("stubs/migration.{$stubName}.stub");
-
-        $stub = file_get_contents($codegen_path);
-
-        $stub = str_replace('{{ tableName }}', $tableName, $stub);
-
-        $fieldsString = $this->getFieldsString($fields);
-
-        $stub = str_replace('{{ fields }}', $fieldsString, $stub);
-
-        file_put_contents($migrationFile, $stub);
-    }
-
-    /**
-     * @param array $options
-     * @param array $fields
-     * @param int $index
-     * @return array
-     */
     public function receive_options(array $options, array $fields, int $index): array
     {
         $invalid_options = $this->validate_options($options, $this->valid_options);
@@ -479,9 +450,6 @@ class MigrationBaseGenerator extends Command
         return array($fields);
     }
 
-    /**
-     * @return string[]
-     */
     public function askForOptions(): array
     {
         $options_response = $this->ask("Specify any other options. Options should be comma seperated eg. nullable,default:true ");
