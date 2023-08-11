@@ -18,26 +18,6 @@ You can install the package via composer:
 composer require tgozo/laravel-codegen
 ```
 
-## Configuration
-
-All you need to do is register the ServiceProvider in your Application's providers.
-
-Go to `config/app.php` and include the service provider among other providers
-
-``` php
-    'providers' => ServiceProvider::defaultProviders()->merge([
-        /*
-         * Package Service Providers...
-         */
-        ...
-        \Tgozo\LaravelCodegen\CodeGenServiceProvider::class,
-
-        ...
-    ])->toArray(),
-```
-
-At this point you will be good enough to enjoy the magic provided by this package
-
 ## Usage
 
 To create a migration. Execute the following command from the root of your Laravel project
