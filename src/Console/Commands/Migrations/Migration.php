@@ -35,7 +35,6 @@ class Migration extends MigrationBaseGenerator
      */
     public function handle(): void
     {
-
         $name = $this->getMigrationName();
 
         $fields = [];
@@ -47,9 +46,16 @@ class Migration extends MigrationBaseGenerator
         $this->createMigration($name, $fields);
 
         if ($this->option('m')){
-            $modelName = ucfirst($this->getTableName($name));
+            $modelName = $this->singularize(ucfirst($this->getTableName($name)));
             $this->createModel($modelName, $fields);
             $this->info('Created Model: ' . $modelName);
+        }
+
+        if ($this->option('c')){
+            if (isset($modelName)){
+                $controllerName = $this->controller_name_from_model($modelName);
+                $this->createController($controllerName, $modelName, $fields, "standard");
+            }
         }
 
         $this->info('Created migration: ' . $name);

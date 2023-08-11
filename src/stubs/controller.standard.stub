@@ -2,17 +2,17 @@
 
 namespace {{ namespace }};
 
-use {{ rootNamespace }}Http\Controllers\Controller;
+use App\Models\{{ modelName }};
 use Illuminate\Http\Request;
 
-class {{ class }} extends Controller
+class {{ controllerName }} extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        //
+        {{ fetchCode }}
     }
 
     /**
@@ -20,7 +20,7 @@ class {{ class }} extends Controller
      */
     public function create()
     {
-        //
+        {{ createCode }}
     }
 
     /**
@@ -28,7 +28,7 @@ class {{ class }} extends Controller
      */
     public function store(Request $request)
     {
-        //
+        {{ storeCode }}
     }
 
     /**
@@ -36,7 +36,7 @@ class {{ class }} extends Controller
      */
     public function show(string $id)
     {
-        //
+        {{ showCode }}
     }
 
     /**
@@ -44,7 +44,7 @@ class {{ class }} extends Controller
      */
     public function edit(string $id)
     {
-        //
+        {{ editCode }}
     }
 
     /**
@@ -52,7 +52,7 @@ class {{ class }} extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        {{ updateCode }}
     }
 
     /**
@@ -60,6 +60,6 @@ class {{ class }} extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        {{ destroyCode }}
     }
 }
