@@ -15,5 +15,20 @@
     "require": {
         "doctrine/inflector": "2.1.x-dev"
     },
-    "minimum-stability": "dev"
+    "require-dev": {
+        "pestphp/pest": "^2.4.0"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Tgozo\\LaravelCodegen\\CodeGenServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
 }
