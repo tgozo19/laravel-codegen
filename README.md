@@ -1,10 +1,10 @@
 # Laravel-codegen
 
-This package generates code for you. It takes to another level how migrations, controllers and models are created in Laravel
+This package generates code for you. It takes to another level how Migrations, Models and Controllers are created in Laravel
 
 ### Note
 
-As of now the package only accept the creation of a migration. More features will be rolled out soon.
+As of now the package only accepts the creation of a migration. More features will be rolled out soon.
 
 ## Requirements
 - PHP >=8.1
@@ -22,9 +22,16 @@ composer require tgozo/laravel-codegen
 
 To create a migration. Execute the following command from the root of your Laravel project
 ```
-php artisan codegen:migration --with-fields
+php artisan codegen:migration
 ```
-The migration names should follow certain patterns.
+
+### Notes
+
+1. At least 1 field should be specified.
+1. You can add the options `-m` and `-c` to the command so that a Model and a Controller can be created respectively.
+1. To create a Migration, Model and Controller. Execute the command ```php artisan codegen:migration -mc```
+1. When a Controller is created, necessary Routes are added to the `routes/web.php` file and the necessary views are added to the `resources/views` directory.
+1. The migration names should follow certain patterns.
 
 ```
 create_posts_table
