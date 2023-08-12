@@ -185,10 +185,21 @@ class MigrationBaseGenerator extends Command
 
     }
 
+    public function check_initial_field(mixed $name): array
+    {
+        $field = [];
+        if (empty($name)) {
+            $this->error("You need to specify at least 1 field");
+            $field = $this->getFields();
+        }
+        return $field;
+    }
+
     public function getFields(): array
     {
-        $fields = [];
         $name = $this->ask('Specify a field name (or press <return> to stop adding fields)');
+
+        $fields = $this->check_initial_field($name);
 
         $index = 0;
         while (!empty($name)) {

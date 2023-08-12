@@ -9,7 +9,7 @@ class Migration extends MigrationBaseGenerator
      *
      * @var string
      */
-    protected $signature = 'codegen:migration {name?} {--with-fields} {--m|m} {--c|c}';
+    protected $signature = 'codegen:migration {name?} {--m|m} {--c|c}';
 
     /**
      * The console command description.
@@ -37,11 +37,7 @@ class Migration extends MigrationBaseGenerator
     {
         $name = $this->getMigrationName();
 
-        $fields = [];
-
-        if ($this->option('with-fields')) {
-            $fields = $this->getFields();
-        }
+        $fields = $this->getFields();
 
         $this->createMigration($name, $fields);
 

@@ -229,6 +229,44 @@ trait MethodsTrait
         return str_replace('{{ destroyCode }}', $destroyString, $stub);
     }
 
+    public function getRoutesString($controllerName, $modelName): string
+    {
+        $pluralizedModelName = $this->str_to_lower($this->pluralize($modelName));
+        $modelName = $this->str_to_lower($modelName);
+        $str = "Route::controller($controllerName::class)->middleware([])->group(function (){" . PHP_EOL . "\t";
+        $str .= "Route::get('$pluralizedModelName', 'index')->name('view-$pluralizedModelName');" . PHP_EOL . "\t";
+        $str .= "Route::get('$pluralizedModelName/{id}', 'show')->name('show-$modelName');" . PHP_EOL . "\t";
+        $str .= "Route::get('edit-$modelName/{id}', 'edit')->name('edit-$modelName');" . PHP_EOL . "\t";
+        $str .= "Route::get('create-$modelName', 'create')->name('create-$modelName');" . PHP_EOL . "\t";
+        $str .= "Route::post('store-$modelName', 'store')->name('store-$modelName');" . PHP_EOL . "\t";
+        $str .= "Route::post('delete-$pluralizedModelName', 'destroy')->name('delete-$pluralizedModelName');" . PHP_EOL;
+        $str .= "});";
+        return $str;
+    }
+
+    public function create_routes($controllerName, $modelName): void
+    {
+        $file_path = "routes/web.php";
+        $routesString = $this->getRoutesString($controllerName, $modelName);
+
+        $new_file = file_get_contents(base_path($file_path));
+
+        $controller_name_space = "use App\Http\Controllers\\$controllerName;";
+
+        if (!str_contains($new_file, $controller_name_space)){
+            $replace_string = "<?php" . PHP_EOL;
+            $replace_string .= $controller_name_space;
+
+            $new_file_contents = str_replace("<?php", $replace_string, $new_file);
+
+            file_put_contents(base_path($file_path), $new_file_contents);
+        }
+
+        $file = fopen(base_path($file_path), 'a+');
+        fwrite($file, PHP_EOL . $routesString);
+        fclose($file);
+    }
+
     public function createController($controllerName, $modelName, $fields, $controllerType = "base"): void
     {
         $controllerFile = app_path('Http/Controllers') . '/' . $controllerName . '.php';
@@ -242,5 +280,7 @@ trait MethodsTrait
         $this->formatFile($controllerFile);
 
         $this->info("Created Controller");
+
+        $this->create_routes($controllerName, $modelName);
     }
 }
