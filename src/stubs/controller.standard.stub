@@ -4,11 +4,14 @@ namespace {{ namespace }};
 
 use App\Models\{{ modelName }};
 use Illuminate\Http\Request;
+use Exception;
+use Illuminate\Support\Facades\DB;
+{{ hasHash }}
 
 class {{ controllerName }} extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of the {{ pluralizedModelName }}.
      */
     public function index()
     {
@@ -16,7 +19,7 @@ class {{ controllerName }} extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Show the form for creating a new {{ modelName }}.
      */
     public function create()
     {
@@ -24,7 +27,7 @@ class {{ controllerName }} extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a newly created {{ modelName }} in storage.
      */
     public function store(Request $request)
     {
@@ -32,7 +35,7 @@ class {{ controllerName }} extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Display the specified {{ modelName }}.
      */
     public function show(string $id)
     {
@@ -40,7 +43,7 @@ class {{ controllerName }} extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Show the form for editing the specified {{ modelName }}.
      */
     public function edit(string $id)
     {
@@ -48,7 +51,7 @@ class {{ controllerName }} extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update the specified {{ modelName }} in storage.
      */
     public function update(Request $request, string $id)
     {
@@ -56,7 +59,7 @@ class {{ controllerName }} extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified {{ modelName }} from storage.
      */
     public function destroy(string $id)
     {
