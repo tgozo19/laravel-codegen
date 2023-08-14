@@ -1,5 +1,14 @@
 {
     "name": "tgozo/laravel-codegen",
+    "description": "A Laravel Code Generator to help you get started with a lot of staff including generating Migrations, Models, Controllers, Factories, Routes, Views, Database Seeders and Request Validation Rules.",
+    "keywords": [
+        "php",
+        "framework",
+        "laravel",
+        "codegen",
+        "code",
+        "generator"
+    ],
     "license": "MIT",
     "autoload": {
         "psr-4": {
