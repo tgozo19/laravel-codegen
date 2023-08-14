@@ -1,13 +1,15 @@
 # Laravel-codegen
 
-This package generates code for you. It takes to another level how Migrations, Models and Controllers are created in Laravel
+This package generates code for you. It is capable of creating Migrations, Models, Controllers, Factories, Routes, Views, Database Seeders and Request Validation Rules.
+For each Route, a PestPhp Test will be created to make sure it can be accessed.
 
-### Note
+### Important Note
 
-As of now the package only accepts the creation of a migration. More features will be rolled out soon.
+This package is still in beta. Therefore, I recommend testing your application thoroughly before using it in production.
+
 
 ## Requirements
-- PHP >=8.1
+- PHP >= 8.1
 - Laravel >= 10
 
 ## Installing
@@ -31,6 +33,7 @@ php artisan codegen:migration
 1. You can add the options `-m` and `-c` to the command so that a Model and a Controller can be created respectively.
 1. To create a Migration, Model and Controller. Execute the command ```php artisan codegen:migration -mc```
 1. When a Controller is created, necessary Routes are added to the `routes/web.php` file and the necessary views are added to the `resources/views` directory.
+1. For each Route, a PestPhp Test will be created to make sure it can be accessed.
 1. The migration names should follow certain patterns.
 
 ```
