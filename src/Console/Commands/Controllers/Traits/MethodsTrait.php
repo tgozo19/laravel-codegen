@@ -141,7 +141,7 @@ trait MethodsTrait
     public function getUpdateString($modelName, $fields): string
     {
         $data_variable = $this->str_to_lower($modelName);
-        $str = "\${$data_variable} = {$modelName}::findOrFail(\$id);";
+        $str = "\${$data_variable} = {$modelName}::findOrFail(\$id);" . PHP_EOL . "\t\t";
         $str .= "try {" . PHP_EOL . "\t\t\t";
         $str .= "DB::beginTransaction();" . PHP_EOL . "\t\t\t";
         $str .= "\${$data_variable}->update([" . PHP_EOL . "\t\t\t\t";
@@ -164,7 +164,7 @@ trait MethodsTrait
     public function getDestroyString($modelName): string
     {
         $str = "try {" . PHP_EOL . "\t\t\t";
-        $str .= "$modelName::destroy(\$id);" . PHP_EOL . "\t\t\t";
+        $str .= "$modelName::destroy(\$ids);" . PHP_EOL . "\t\t\t";
         $str .= "return back()->with('success', '{$modelName} Deleted Successfully');" . PHP_EOL . "\t\t";
         $str .= "}catch (Exception \$e){" . PHP_EOL . "\t\t\t";
         $str .= "info(\$e->getMessage());" . PHP_EOL . "\t\t\t";
@@ -267,7 +267,7 @@ trait MethodsTrait
         fclose($file);
     }
 
-    public function createController($controllerName, $modelName, $fields, $controllerType = "base"): void
+    public function createController($controllerName, $modelName, $fields, $controllerType = "base"): string
     {
         $controllerFile = app_path('Http/Controllers') . '/' . $controllerName . '.php';
         $stubName = $this->getControllerStubName($controllerType);
@@ -279,8 +279,8 @@ trait MethodsTrait
 
         $this->formatFile($controllerFile);
 
-        $this->info("Created Controller");
-
         $this->create_routes($controllerName, $modelName);
+
+        return $controllerFile;
     }
 }

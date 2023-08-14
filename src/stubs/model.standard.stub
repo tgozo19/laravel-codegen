@@ -11,7 +11,7 @@ class {{ modelName }} extends Model
 
     /**
         Using fillable is good when you have 2–10 fields, but what if you have 20–50 fields in your model? I have experienced creating a table
-        with 56 fields to be exact, and just 3 out of those fields are needed to be protected. Trust me, it’s quite of a work. “I’m not
+        with 18 fields to be exact, and none of those fields are needed to be protected. Trust me, it’s quite of a work. “I’m not
         saying that it’s not good” using fillable in this situation, you may, but if you want an easier way to secure it from
         mass-assignment, then guarded will be more preferable.
     */

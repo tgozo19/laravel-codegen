@@ -2,12 +2,14 @@
 
 namespace Tgozo\LaravelCodegen\Console\Commands\Migrations;
 
-use Tgozo\LaravelCodegen\Console\Commands\Migrations\Traits\AddColumTrait;
+use Symfony\Component\Console\Output\OutputInterface;
+use Tgozo\LaravelCodegen\Console\Commands\Migrations\Traits\AddColumnsTrait;
+use Tgozo\LaravelCodegen\Console\Commands\Migrations\Traits\AddColumnTrait;
 use Tgozo\LaravelCodegen\Console\Commands\Migrations\Traits\CreateTrait;
 
 class Migration extends MigrationBaseGenerator
 {
-    use CreateTrait, AddColumTrait;
+    use CreateTrait, AddColumnTrait, AddColumnsTrait;
     /**
      * The name and signature of the console command.
      *

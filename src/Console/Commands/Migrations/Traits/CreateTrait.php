@@ -8,21 +8,24 @@ trait CreateTrait
     {
         $fields = $this->getFields($pattern);
 
-        $this->createMigration($name, $fields);
+        $created_migration_name = $this->createMigration($name, $fields);
+
+        $this->info("Migration [$created_migration_name] created successfully.");
 
         if ($this->option('m')){
             $modelName = $this->singularize(ucfirst($this->getTableName($name)));
-            $this->createModel($modelName, $fields);
-            $this->info('Created Model: ' . $modelName);
+            $created_model_name = $this->createModel($modelName, $fields);
+            $this->info("Model [$created_model_name] created successfully.");
         }
 
         if ($this->option('c')){
             if (isset($modelName)){
                 $controllerName = $this->controller_name_from_model($modelName);
-                $this->createController($controllerName, $modelName, $fields, "standard");
+                $created_controller_name = $this->createController($controllerName, $modelName, $fields, "standard");
+                $this->info("Controller [$created_controller_name] created successfully.");
+                $this->info("6 routes created in routes/web.php file.");
+                $this->info("4 views created in resources/views/{$this->str_to_lower($modelName)} directory.");
             }
         }
-
-        $this->info('Created migration: ' . $name);
     }
 }

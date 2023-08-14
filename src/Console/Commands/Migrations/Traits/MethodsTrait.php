@@ -13,19 +13,14 @@ trait MethodsTrait
     {
         if (empty($fields)) return "''";
         if (count($fields) === 1) return "'{$fields[0]['name']}'";
-        $callback = function ($field){
+        return "[" . join(',', array_map(function ($field){
             return "'{$field['name']}'";
-        };
-        return "[" . join(',', array_map(fn() => $callback, $fields)) . "]";
+        }, $fields)) . "]";
     }
 
     public function get_migration_description(mixed $migrationType, $fields, string $tableName, $migrationName): mixed
     {
         if (empty($fields)) return $migrationName;
-
-        $callback = function ($field) {
-            return "{$field['name']}";
-        };
 
         if ($migrationType === "add_column") {
             $column = $fields[0]['name'];
@@ -33,14 +28,16 @@ trait MethodsTrait
         }
 
         if ($migrationType === "add_columns") {
-            $columns = join('-', array_map(fn() => $callback, $fields));
+            $columns = join('-', array_map(function ($field) {
+                return "{$field['name']}";
+            }, $fields));
             return "add_columns_{$columns}_to_{$tableName}_table";
         }
 
         return $migrationName;
     }
 
-    public function createMigration($migrationName, $fields, $migrationType = "create"): void
+    public function createMigration($migrationName, $fields, $migrationType = "create"): string
     {
         $tableName = $this->getTableName($migrationName);
 
@@ -60,11 +57,18 @@ trait MethodsTrait
             $stub = str_replace('{{ dropFields }}', $dropFieldsString, $stub);
         }
 
+        if ($migrationType === "add_columns"){
+            $dropFieldsString = $this->getFieldNamesString($fields);
+            $stub = str_replace('{{ dropFields }}', $dropFieldsString, $stub);
+        }
+
         $file_name = $this->get_migration_description($migrationType, $fields, $tableName, $migrationName);
 
         $migrationFile = database_path('migrations') . '/' . date('Y_m_d_His') . '_' . $file_name . '.php';
 
 
         file_put_contents($migrationFile, $stub);
+
+        return $migrationFile;
     }
 }

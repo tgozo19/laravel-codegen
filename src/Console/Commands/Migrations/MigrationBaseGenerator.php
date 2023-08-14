@@ -371,6 +371,17 @@ class MigrationBaseGenerator extends Command
         return $final_table_name;
     }
 
+    public function add_columns_to_validate($starts_with, $final_table_name): string
+    {
+        $final_table_name = $this->get_final_table_name($starts_with, $final_table_name);
+        if (strlen($final_table_name) === 0){
+            $this->error("Please provide a valid table name");
+            exit;
+        }
+
+        return $final_table_name;
+    }
+
     public function followsPattern($name): void
     {
         $starts_with = $this->checkStart($name);

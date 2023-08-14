@@ -12,10 +12,11 @@ trait AttributesTrait
     ];
 
     private array $patterns = [
-        'start' => ['create_', 'add_column_to_'],
+        'start' => ['create_', 'add_column_to_', 'add_columns_to_'],
         'ending' => [
             'create_' => ['_table'],
             'add_column_to_' => ['_table'],
+            'add_columns_to_' => ['_table'],
         ]
     ];
 
@@ -55,6 +56,7 @@ trait AttributesTrait
     private array $stub_names = [
         'create_' => 'create',
         'add_column_to_' => 'update',
+        'add_columns_to_' => 'update',
     ];
 
     public array $common_columns = [
