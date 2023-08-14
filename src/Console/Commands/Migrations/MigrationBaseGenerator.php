@@ -18,7 +18,7 @@ class MigrationBaseGenerator extends Command
         $name = $this->argument('name');
 
         if (empty($name)) {
-            $name = $this->ask('What is the name of the migration?');
+            $name = $this->ask('What should the migration be named?');
         }
 
         if (empty($name)) {
@@ -185,21 +185,54 @@ class MigrationBaseGenerator extends Command
 
     }
 
-    public function check_initial_field(mixed $name): array
+    public function check_modifier_against_command_type($options, $type): void
+    {
+        $errors = [];
+        if ($type === "") return;
+        if (empty($options)) return;
+        foreach ($options as $option) {
+            if (strlen($option) === 0) continue;
+            $position = strpos($option, ":");
+            if ($position !== false){
+                $option = substr($option, 0, $position);
+            }
+
+            if (array_key_exists($option, $this->modifiers_incompatible_command_types)){
+                $not_compatible_with = $this->modifiers_incompatible_command_types[$option];
+                if (in_array($type, $not_compatible_with)){
+                    $errors[$option] = $type;
+                }
+            }
+        }
+
+        if (!empty($errors)){
+            foreach ($errors as $key => $error) {
+                $this->error("The option {$key} is not compatible with the command type {$error}");
+            }
+
+            $options = $this->askForOptions();
+
+            $this->check_modifier_against_command_type($options, $type);
+        }
+
+    }
+
+    public function check_initial_field(mixed $name, $pattern): array
     {
         $field = [];
         if (empty($name)) {
             $this->error("You need to specify at least 1 field");
-            $field = $this->getFields();
+            $field = $this->getFields($pattern);
         }
         return $field;
     }
 
-    public function getFields(): array
+    public function getFields($pattern, $max_columns = null): array
     {
+
         $name = $this->ask('Specify a field name (or press <return> to stop adding fields)');
 
-        $fields = $this->check_initial_field($name);
+        $fields = $this->check_initial_field($name, $pattern);
 
         $index = 0;
         while (!empty($name)) {
@@ -252,7 +285,13 @@ class MigrationBaseGenerator extends Command
 
             $this->check_modifier_against_type($options, $type);
 
+            $this->check_modifier_against_command_type($options, $pattern);
+
             list($fields) = $this->receive_options($options, $fields, $index);
+
+            if ($max_columns !== null and $max_columns === count($fields)){
+                break;
+            }
 
             $name = $this->ask('Specify a field name (or press <return> to stop adding fields)');
             $index++;
@@ -288,19 +327,42 @@ class MigrationBaseGenerator extends Command
         return array_key_exists($pattern, $this->patterns['ending']);
     }
 
-    public function create_validate($starts_with, $final_table_name): string
+    /**
+     * Attempt to get table name if migration name matches valid patterns
+     * @param $starts_with
+     * @param $final_table_name
+     * @return array|string|string[]|void
+     */
+    public function get_final_table_name($starts_with, $final_table_name)
     {
         $final_table_name = str_replace($starts_with, "", $final_table_name);
 
         $has_ending_pattern = $this->hasExpectedEnding($starts_with);
-        if ($has_ending_pattern){
+        if ($has_ending_pattern) {
             $ends_with = $this->checkEnding($starts_with, $final_table_name);
-            if ($ends_with === null){
+            if ($ends_with === null) {
                 $this->error("A migration which starts with {$starts_with} declarative should end with " . implode(', ', $this->patterns['ending'][$starts_with]));
                 exit;
             }
             $final_table_name = str_replace($ends_with, "", $final_table_name);
         }
+        return $final_table_name;
+    }
+
+    public function create_validate($starts_with, $final_table_name): string
+    {
+        $final_table_name = $this->get_final_table_name($starts_with, $final_table_name);
+        if (strlen($final_table_name) === 0){
+            $this->error("Please provide a valid table name");
+            exit;
+        }
+
+        return $final_table_name;
+    }
+
+    public function add_column_to_validate($starts_with, $final_table_name): string
+    {
+        $final_table_name = $this->get_final_table_name($starts_with, $final_table_name);
         if (strlen($final_table_name) === 0){
             $this->error("Please provide a valid table name");
             exit;
@@ -324,6 +386,11 @@ class MigrationBaseGenerator extends Command
         }
 
         $this->{$starts_with . "validate"}($starts_with, $name);
+    }
+
+    public function getPattern($name)
+    {
+        return $this->checkStart($name);
     }
 
     public function getTableName($name): string

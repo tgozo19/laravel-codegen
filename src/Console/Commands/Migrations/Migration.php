@@ -2,8 +2,12 @@
 
 namespace Tgozo\LaravelCodegen\Console\Commands\Migrations;
 
+use Tgozo\LaravelCodegen\Console\Commands\Migrations\Traits\AddColumTrait;
+use Tgozo\LaravelCodegen\Console\Commands\Migrations\Traits\CreateTrait;
+
 class Migration extends MigrationBaseGenerator
 {
+    use CreateTrait, AddColumTrait;
     /**
      * The name and signature of the console command.
      *
@@ -37,23 +41,12 @@ class Migration extends MigrationBaseGenerator
     {
         $name = $this->getMigrationName();
 
-        $fields = $this->getFields();
+        $pattern = $this->getPattern($name);
 
-        $this->createMigration($name, $fields);
-
-        if ($this->option('m')){
-            $modelName = $this->singularize(ucfirst($this->getTableName($name)));
-            $this->createModel($modelName, $fields);
-            $this->info('Created Model: ' . $modelName);
+        if (!method_exists($this, "handle_{$pattern}command")){
+            $this->info("Command for pattern {$pattern} doesn't exist");
+            exit;
         }
-
-        if ($this->option('c')){
-            if (isset($modelName)){
-                $controllerName = $this->controller_name_from_model($modelName);
-                $this->createController($controllerName, $modelName, $fields, "standard");
-            }
-        }
-
-        $this->info('Created migration: ' . $name);
+        $this->{"handle_{$pattern}command"}($name, $pattern);
     }
 }
