@@ -83,7 +83,7 @@ trait MethodsTrait
         return str_replace('{{ $casts }}', $castsString, $stub);
     }
 
-    public function createModel($modelName, $fields, $modelType = "standard"): void
+    public function createModel($modelName, $fields, $modelType = "standard"): string
     {
         $modelFile = app_path('Models') . '/' . $modelName . '.php';
 
@@ -95,5 +95,7 @@ trait MethodsTrait
         file_put_contents($modelFile, $stub);
 
         $this->formatFile($modelFile);
+
+        return $modelFile;
     }
 }

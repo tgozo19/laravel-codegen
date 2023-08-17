@@ -16,7 +16,7 @@ trait BaseTrait
         $string = str_replace('_', ' ', $string);
         $string = ucwords($string);
         $string = str_replace(' ', '', $string);
-        return Inflector::pluralize($string);
+        return app(Inflector::class)->pluralize($string);
     }
 
     public function snakeToCamelSingular($string): string
@@ -24,7 +24,7 @@ trait BaseTrait
         $string = str_replace('_', ' ', $string);
         $string = ucwords($string);
         $string = str_replace(' ', '', $string);
-        return Inflector::singularize($string);
+        return app(Inflector::class)->singularize($string);
     }
 
     public function formatFile($file): void
@@ -34,9 +34,33 @@ trait BaseTrait
         file_put_contents($file, $contents);
     }
 
+    public function singularize($str): string
+    {
+        return app(Inflector::class)->singularize($str);
+    }
+    public function pluralize($str): string
+    {
+        return app(Inflector::class)->pluralize($str);
+    }
+
+    public function str_to_lower($str): string
+    {
+        return strtolower($str);
+    }
+
+    public function str_to_upper($str): string
+    {
+        return strtoupper($str);
+    }
+
     public function intersectArrays($arr1, $arr2): array
     {
         return array_values(array_intersect($arr1, $arr2));
+    }
+
+    public function controller_name_from_model($modelName): string
+    {
+        return $modelName . "Controller";
     }
 
 }

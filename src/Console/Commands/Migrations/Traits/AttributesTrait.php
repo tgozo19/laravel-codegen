@@ -12,15 +12,17 @@ trait AttributesTrait
     ];
 
     private array $patterns = [
-        'start' => ['create_'],
+        'start' => ['create_', 'add_column_to_', 'add_columns_to_'],
         'ending' => [
-            'create_' => ['_table']
+            'create_' => ['_table'],
+            'add_column_to_' => ['_table'],
+            'add_columns_to_' => ['_table'],
         ]
     ];
 
     private array $valid_options = [
         'nullable', 'default', 'unique', 'after', 'charset', 'collation', 'comment', 'first',
-        'storedAs', 'unsigned', 'useCurrent', 'useCurrentOnUpdate', 'virtualAs', 'autoIncrement'
+        'storedAs', 'unsigned', 'useCurrent', 'useCurrentOnUpdate', 'virtualAs', 'autoIncrement', 'softDeletes'
     ];
 
     private array $option_actions = [
@@ -37,7 +39,8 @@ trait AttributesTrait
         'useCurrent' => true,
         'useCurrentOnUpdate' => true,
         'virtualAs' => 'take_value',
-        'autoIncrement' => 'take_value'
+        'autoIncrement' => 'take_value',
+        'softDeletes' => true
     ];
 
     private array $incompatible_options = [
@@ -52,6 +55,8 @@ trait AttributesTrait
 
     private array $stub_names = [
         'create_' => 'create',
+        'add_column_to_' => 'update',
+        'add_columns_to_' => 'update',
     ];
 
     public array $common_columns = [
@@ -105,6 +110,10 @@ trait AttributesTrait
         'nullable' => [],
         'unsigned' => ['char','date','dateTime','dateTimeTz','time','timeTz','timestamp','timestampTz','text','mediumText','longText','json','jsonb','binary','uuid'],
         'useCurrent' => ['char','integer','bigInteger','mediumInteger','smallInteger','tinyInteger','float','double','decimal','text','mediumText','longText','json','jsonb','binary','uuid']
+    ];
+
+    private array $modifiers_incompatible_command_types = [
+        'after' => ['create_'],
     ];
 
 }

@@ -1,0 +1,86 @@
+<?php
+
+namespace {{ namespace }};
+
+use App\Models\{{ modelName }};
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Exception;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Collection;
+{{ hasHash }}
+
+class {{ controllerName }} extends Controller
+{
+    /**
+     * Display a listing of the {{ pluralizedModelName }}.
+     * @return Application|Factory|\Illuminate\Foundation\Application|View
+     */
+    public function index()
+    {
+        {{ fetchCode }}
+    }
+
+    /**
+     * Show the form for creating a new {{ modelName }}.
+     * @return Application|Factory|\Illuminate\Foundation\Application|View
+     */
+    public function create()
+    {
+        {{ createCode }}
+    }
+
+    /**
+     * Store a newly created {{ modelName }} in storage.
+     * @param Request $request
+     * @return RedirectResponse
+     */
+    public function store(Request $request)
+    {
+        {{ storeCode }}
+    }
+
+    /**
+     * Display the specified {{ modelName }}.
+     * @param string $id
+     * @return Application|Factory|View|\Illuminate\Foundation\Application
+     */
+    public function show(string $id)
+    {
+        {{ showCode }}
+    }
+
+    /**
+     * Show the form for editing the specified {{ modelName }}.
+     * @param string $id
+     * @return Application|Factory|View|\Illuminate\Foundation\Application
+     */
+    public function edit(string $id)
+    {
+        {{ editCode }}
+    }
+
+    /**
+     * Update the specified {{ modelName }} in storage.
+     * @param Request $request
+     * @param string $id
+     * @return RedirectResponse
+     */
+    public function update(Request $request, string $id)
+    {
+        {{ updateCode }}
+    }
+
+    /**
+     * Remove the specified {{ modelName }} from storage.
+     * @param array|int|string|Collection $ids
+     * @return RedirectResponse
+     */
+    public function destroy(array|int|string|Collection $ids)
+    {
+        {{ destroyCode }}
+    }
+}

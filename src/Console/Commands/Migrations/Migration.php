@@ -2,14 +2,20 @@
 
 namespace Tgozo\LaravelCodegen\Console\Commands\Migrations;
 
+use Symfony\Component\Console\Output\OutputInterface;
+use Tgozo\LaravelCodegen\Console\Commands\Migrations\Traits\AddColumnsTrait;
+use Tgozo\LaravelCodegen\Console\Commands\Migrations\Traits\AddColumnTrait;
+use Tgozo\LaravelCodegen\Console\Commands\Migrations\Traits\CreateTrait;
+
 class Migration extends MigrationBaseGenerator
 {
+    use CreateTrait, AddColumnTrait, AddColumnsTrait;
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'codegen:migration {name?} {--with-fields} {--m|m} {--c|c}';
+    protected $signature = 'codegen:migration {name?} {--m|m} {--c|c}';
 
     /**
      * The console command description.
@@ -35,23 +41,14 @@ class Migration extends MigrationBaseGenerator
      */
     public function handle(): void
     {
-
         $name = $this->getMigrationName();
 
-        $fields = [];
+        $pattern = $this->getPattern($name);
 
-        if ($this->option('with-fields')) {
-            $fields = $this->getFields();
+        if (!method_exists($this, "handle_{$pattern}command")){
+            $this->info("Command for pattern {$pattern} doesn't exist");
+            exit;
         }
-
-        $this->createMigration($name, $fields);
-
-        if ($this->option('m')){
-            $modelName = ucfirst($this->getTableName($name));
-            $this->createModel($modelName, $fields);
-            $this->info('Created Model: ' . $modelName);
-        }
-
-        $this->info('Created migration: ' . $name);
+        $this->{"handle_{$pattern}command"}($name, $pattern);
     }
 }
