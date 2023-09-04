@@ -11,6 +11,17 @@ trait BaseTrait
         return dirname(__DIR__, 1) . "/{$path}";
     }
 
+    public function load_stub($name): string
+    {
+        if (str($name)->endsWith('.stub')){
+            $pos = strpos($name, '.stub');
+            $name = substr($name, 0, $pos);
+        }
+
+        $dir_name = dirname(__DIR__, 1) . "/stubs/{$name}.stub";
+        return file_get_contents($dir_name);
+    }
+
     public function snakeToCamelPlural($string): string
     {
         $string = str_replace('_', ' ', $string);
