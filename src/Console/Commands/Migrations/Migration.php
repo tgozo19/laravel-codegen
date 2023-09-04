@@ -6,16 +6,17 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Tgozo\LaravelCodegen\Console\Commands\Migrations\Traits\AddColumnsTrait;
 use Tgozo\LaravelCodegen\Console\Commands\Migrations\Traits\AddColumnTrait;
 use Tgozo\LaravelCodegen\Console\Commands\Migrations\Traits\CreateTrait;
+use Tgozo\LaravelCodegen\Console\Commands\Seeders\Traits\MethodsTrait;
 
 class Migration extends MigrationBaseGenerator
 {
-    use CreateTrait, AddColumnTrait, AddColumnsTrait;
+    use CreateTrait, AddColumnTrait, AddColumnsTrait, MethodsTrait;
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'codegen:migration {name?} {--m|m} {--c|c}';
+    protected $signature = 'codegen:migration {name?} {--m|m} {--c|c} {--s|s} {--all|all}';
 
     /**
      * The console command description.
@@ -41,6 +42,7 @@ class Migration extends MigrationBaseGenerator
      */
     public function handle(): void
     {
+
         $name = $this->getMigrationName();
 
         $pattern = $this->getPattern($name);
