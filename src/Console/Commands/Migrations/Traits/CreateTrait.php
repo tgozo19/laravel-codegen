@@ -33,5 +33,11 @@ trait CreateTrait
                 $this->create_seeder($modelName, $fields);
             }
         }
+
+        if ($this->option('f') || $this->option('all')){
+            if (isset($modelName)) {
+                $this->create_factory($modelName, $fields);
+            }
+        }
     }
 }

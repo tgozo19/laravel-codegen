@@ -1,13 +1,15 @@
 <?php
 
-namespace {{ factoryNamespace }};
+namespace {{ namespace }};
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+{{ namespacedModel }}
+{{ str_namespace }}
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\{{ namespacedModel }}>
+ * @extends Factory<{{ model }}>
  */
-class {{ factory }}Factory extends Factory
+class {{ factory }} extends Factory
 {
     /**
      * Define the model's default state.
@@ -16,8 +18,16 @@ class {{ factory }}Factory extends Factory
      */
     public function definition(): array
     {
-        return [
-            //
-        ];
+
+    }
+
+    /**
+     * Indicate that the model's attributes that should be unverified.
+     */
+    public function unverified(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            {{ unverified }}
+        ]);
     }
 }
