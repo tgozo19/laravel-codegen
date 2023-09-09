@@ -57,7 +57,7 @@ trait MethodsTrait
 
         file_put_contents($database_seeder_file, $new_file_contents);
 
-        $this->info("Created Seeder {$seeder_name} at {$database_seeder_file}");
+        $this->info("Seeder [$database_seeder_file] created successfully.");
         $this->register_seeder($modelName);
     }
 
@@ -79,6 +79,6 @@ trait MethodsTrait
 
         file_put_contents($database_seeder_file, $new_file_contents);
 
-        $this->info("Registered Seeder {$seeder_name} in {$file_name} file at {$database_seeder_file}");
+        $this->info("Seeder [$seeder_name] registered successfully in {$database_seeder_file}.");
     }
 }

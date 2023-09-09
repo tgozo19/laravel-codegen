@@ -49,6 +49,7 @@ trait BaseTrait
     {
         return app(Inflector::class)->singularize($str);
     }
+
     public function pluralize($str): string
     {
         return app(Inflector::class)->pluralize($str);
@@ -72,6 +73,21 @@ trait BaseTrait
     public function controller_name_from_model($modelName): string
     {
         return $modelName . "Controller";
+    }
+
+    public function format_to_get_model_name($str): string
+    {
+        $str = $this->str_to_lower($str);
+        // application_ attachments
+        $str = implode('', array_map(function ($a){return $a;}, explode(' ', $str)));
+        // application_attachments
+        if (str($str)->contains('_')){
+            $exp = explode('_', $str);
+            $str = implode('', array_map(function ($a){return ucfirst($a);}, $exp));
+            // ApplicationAttachments
+        }
+
+        return $str;
     }
 
 }

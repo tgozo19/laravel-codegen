@@ -99,7 +99,7 @@ trait MethodsTrait
         $new_file_contents = substr_replace($file_contents, "\t$new_code", $close_brace_pos, 0);
         file_put_contents($file_to_use, $new_file_contents);
 
-        $this->info("Registered Factory {$factory_name} in {$file_to_use}");
+        $this->info("Factory [$factory_name] registered successfully in {$file_to_use}.");
     }
 
     public function create_factory($modelName, $fields = []): void
@@ -143,7 +143,7 @@ trait MethodsTrait
 
         file_put_contents($factory_file, $stub);
 
-        $this->info("Created Factory {$factory_name} at {$factory_file}");
+        $this->info("Factory [$factory_file] created successfully.");
         $this->register_factory($modelName);
     }
 }
