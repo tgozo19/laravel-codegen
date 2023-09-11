@@ -87,6 +87,8 @@ trait BaseTrait
             // ApplicationAttachments
         }
 
+	$str = ucfirst($str);
+
         return $str;
     }
 

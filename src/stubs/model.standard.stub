@@ -4,10 +4,11 @@ namespace {{ namespace }};
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class {{ modelName }} extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     /**
         Using fillable is good when you have 2–10 fields, but what if you have 20–50 fields in your model? I have experienced creating a table
