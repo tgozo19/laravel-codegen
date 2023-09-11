@@ -3,6 +3,7 @@
 namespace Tgozo\LaravelCodegen\Console;
 
 use Illuminate\Support\Facades\Hash;
+use Str;
 
 class FakerGuesser
 {
@@ -65,6 +66,14 @@ class FakerGuesser
 
         if (str($column_name)->contains('password')) {
             return 'fake()->unique()->password';
+        }
+
+        if (str($column_name)->contains('token')) {
+            return '\Str::random(10);';
+        }
+
+        if (str($column_name)->endsWith('_id')) {
+            return 'fake()->unique()->randomNumber()';
         }
 
         if ($column_type === 'integer') {
