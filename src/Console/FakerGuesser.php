@@ -25,6 +25,7 @@ class FakerGuesser
         'quantity' => 'fake()->unique()->randomNumber()',
         'user' => 'fake()->unique()->randomNumber()',
         'email' => 'fake()->unique()->safeEmail',
+	'phone_number' => 'fake()->unique()->phoneNumber',
         'password' => 'fake()->unique()->password',
         'user_id' => 'fake()->unique()->randomNumber()',
         'created_at' => 'now()',
@@ -70,6 +71,10 @@ class FakerGuesser
 
         if (str($column_name)->contains('token')) {
             return '\Str::random(10);';
+        }
+
+	if (str($column_name)->contains('phone_number')) {
+            return 'fake()->unique()->phoneNumber';
         }
 
         if (str($column_name)->endsWith('_id')) {
