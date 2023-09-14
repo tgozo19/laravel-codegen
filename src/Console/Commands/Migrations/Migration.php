@@ -17,7 +17,7 @@ class Migration extends MigrationBaseGenerator
      *
      * @var string
      */
-    protected $signature = 'codegen:migration {name?} {--m|m} {--c|c} {--s|s} {--f|f} {--all|all}';
+    protected $signature = 'codegen:migration {name?} {--m|m} {--c|c} {--b|b} {--r|r} {--s|s} {--f|f} {--all|all} {--force|force}';
 
     /**
      * The console command description.
@@ -47,6 +47,8 @@ class Migration extends MigrationBaseGenerator
         $name = $this->getMigrationName();
 
         $pattern = $this->getPattern($name);
+
+        $this->perform_checks("migration_route", $pattern, $name);
 
         if (!method_exists($this, "handle_{$pattern}command")){
             $this->info("Command for pattern {$pattern} doesn't exist");

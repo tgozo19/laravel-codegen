@@ -3,6 +3,7 @@
 namespace Tgozo\LaravelCodegen\Console;
 
 use Doctrine\Inflector\Inflector;
+use Illuminate\Support\Facades\Route;
 
 trait BaseTrait
 {
@@ -87,9 +88,102 @@ trait BaseTrait
             // ApplicationAttachments
         }
 
-	$str = ucfirst($str);
+        return ucfirst($this->singularize($str));
+    }
 
-        return $str;
+    public function check_migration_route($pattern, $name): void
+    {
+        if ($this->option('force')){
+            return;
+        }
+        $found = [];
+        $model_name = $this->format_to_get_model_name($this->get_final_table_name($pattern, $name));
+
+        if ($this->option('m') || $this->option('all')){
+            $model_path = app_path('Models') . "/{$model_name}.php";
+            if (file_exists($model_path)){
+                $found[] = ['Model', $model_name, $model_path];
+            }
+        }
+
+        if ($this->option('c') || $this->option('all')){
+            $controller_name = "{$model_name}Controller";
+            $controller_path = app_path('Http/Controllers') . "/{$controller_name}.php";
+            if (file_exists($controller_path)){
+                $found[] = ['Controller', $controller_name, $controller_path];
+            }
+        }
+
+        if ($this->option('b') || $this->option('all')){
+            $parent_directory = base_path('resources/views/') . "{$this->str_to_lower($model_name)}";
+            if (file_exists($parent_directory)){
+                $views = ['create', 'edit', 'index', 'show'];
+                foreach ($views as $view) {
+                    $view_name = "{$view}.blade.php";
+                    $view_path = "{$parent_directory}/{$view_name}";
+                    if (file_exists($view_path)){
+                        $found[] = ['View', $view_name, $view_path];
+                    }
+                }
+            }
+        }
+
+        if ($this->option('r') || $this->option('all')){
+            $all_routes = Route::getRoutes();
+            $plural_model_name = $this->pluralize($this->str_to_lower($model_name));
+            $routes = [
+                "create-{$this->str_to_lower($model_name)}",
+                "delete-{$plural_model_name}",
+                "edit-{$this->str_to_lower($model_name)}",
+                "show-{$this->str_to_lower($model_name)}",
+                "store-{$this->str_to_lower($model_name)}",
+                "view-{$plural_model_name}"
+            ];
+
+            $filtered_routes = array_filter($routes, function ($route) use ($all_routes) {
+                return $all_routes->hasNamedRoute($route);
+            });
+
+            foreach ($filtered_routes as $filtered_route) {
+                $found[] = ['Route', $filtered_route, null];
+            }
+        }
+
+        if ($this->option('s') || $this->option('all')){
+            $seeder_name = "{$model_name}Seeder";
+            $seeder_path = database_path('seeders') . "/{$seeder_name}.php";
+            if (file_exists($seeder_path)){
+                $found[] = ['Seeder', $seeder_name, $seeder_path];
+            }
+        }
+
+        if ($this->option('f') || $this->option('all')){
+            $factory_name = "{$model_name}Factory";
+            $factory_path = database_path('factories') . "/{$factory_name}.php";
+            if (file_exists($factory_path)){
+                $found[] = ['Factory', $factory_name, $factory_path];
+            }
+        }
+
+        if (!empty($found)){
+            foreach ($found as $item) {
+                $message = "{$item[0]} [{$item[1]}] already exists";
+                if ($item[2] !== null){
+                    $message .= " at the path {$item[2]}";
+                }
+                $this->comment($message);
+            }
+
+            $this->info("\nTo override the above existing files & routes, run the command with the --force flag");
+            exit;
+        }
+    }
+
+    public function perform_checks($route, $pattern, $name): void
+    {
+        if ($route === "migration_route"){
+            $this->check_migration_route($pattern, $name);
+        }
     }
 
 }
