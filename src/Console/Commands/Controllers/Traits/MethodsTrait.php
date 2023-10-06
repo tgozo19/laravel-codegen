@@ -141,7 +141,7 @@ trait MethodsTrait
     public function getUpdateString($modelName, $fields): string
     {
         $data_variable = $this->str_to_lower($modelName);
-        $str = "\${$data_variable} = {$modelName}::findOrFail(\$id);" . PHP_EOL . "\t\t";
+        $str = "\${$data_variable} = {$modelName}::findOrFail(\$request->{$data_variable}_id);" . PHP_EOL . "\t\t";
         $str .= "try {" . PHP_EOL . "\t\t\t";
         $str .= "DB::beginTransaction();" . PHP_EOL . "\t\t\t";
         $str .= "\${$data_variable}->update([" . PHP_EOL . "\t\t\t\t";
@@ -239,6 +239,7 @@ trait MethodsTrait
         $str .= "Route::get('edit-$modelName/{id}', 'edit')->name('edit-$modelName');" . PHP_EOL . "\t";
         $str .= "Route::get('create-$modelName', 'create')->name('create-$modelName');" . PHP_EOL . "\t";
         $str .= "Route::post('store-$modelName', 'store')->name('store-$modelName');" . PHP_EOL . "\t";
+        $str .= "Route::post('update-$modelName', 'update')->name('update-$modelName');" . PHP_EOL . "\t";
         $str .= "Route::post('delete-$pluralizedModelName', 'destroy')->name('delete-$pluralizedModelName');" . PHP_EOL;
         $str .= "});";
         return $str;

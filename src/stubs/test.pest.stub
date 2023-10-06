@@ -1,0 +1,7 @@
+<?php
+
+{{ functions }}
+{{ classes }}
+{{ uses }}
+
+{{ tests }}

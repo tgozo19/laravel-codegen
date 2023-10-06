@@ -186,4 +186,28 @@ trait BaseTrait
         }
     }
 
+    public function get_faker_string($fields): string
+    {
+        if (empty($fields)){
+            return '//';
+        }
+        $str = "[" . PHP_EOL;
+        foreach ($fields as $field) {
+            $name = $field['name'];
+            $type = $field['type'];
+            $guessed_output = FakerGuesser::guess($name, $type);
+            $guess = $guessed_output[0];
+
+            if ($name === 'password' or str($name)->contains('password')){
+                $str .= "\t\t\t'{$name}' => '{$guess}', // {$guessed_output[1]}";
+            }else{
+                $str .= "\t\t\t'{$name}' => $guess,";
+            }
+
+            $str .= PHP_EOL;
+        }
+        $str .= "\t];";
+        return $str;
+    }
+
 }

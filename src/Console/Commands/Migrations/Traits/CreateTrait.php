@@ -36,5 +36,9 @@ trait CreateTrait
         if ($this->option('f') || $this->option('all')){
             $this->create_factory($modelName, $fields);
         }
+
+        if ($this->option('p') || $this->option('all')){
+            $this->create_tests($modelName, $fields);
+        }
     }
 }

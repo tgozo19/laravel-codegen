@@ -69,7 +69,7 @@ class {{ controllerName }} extends Controller
      * @param string $id
      * @return RedirectResponse
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request)
     {
         {{ updateCode }}
     }

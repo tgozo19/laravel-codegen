@@ -8,10 +8,11 @@ use Tgozo\LaravelCodegen\Console\Commands\Migrations\Traits\AttributesTrait;
 use Tgozo\LaravelCodegen\Console\Commands\Migrations\Traits\MethodsTrait;
 use Tgozo\LaravelCodegen\Console\Commands\Models\Traits\MethodsTrait as ModelsMethodsTrait;
 use Tgozo\LaravelCodegen\Console\Commands\Controllers\Traits\MethodsTrait as ControllersMethodsTrait;
+use Tgozo\LaravelCodegen\Console\Commands\Pest\Traits\MethodsTrait as PestMethodsTrait;
 
 class MigrationBaseGenerator extends Command
 {
-    use BaseTrait, AttributesTrait, MethodsTrait, ModelsMethodsTrait, ControllersMethodsTrait;
+    use BaseTrait, AttributesTrait, MethodsTrait, ModelsMethodsTrait, ControllersMethodsTrait, PestMethodsTrait;
 
     public function getMigrationName()
     {
