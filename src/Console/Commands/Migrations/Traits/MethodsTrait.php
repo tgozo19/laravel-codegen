@@ -37,9 +37,13 @@ trait MethodsTrait
         return $migrationName;
     }
 
-    public function createMigration($migrationName, $fields, $migrationType = "create"): string
+    public function createMigration($migrationName, $fields, $migrationType = "create", $table_name = null): string
     {
-        $tableName = $this->getTableName($migrationName);
+        if ($table_name !== null){
+            $tableName = $table_name;
+        }else{
+            $tableName = $this->getTableName($migrationName);
+        }
 
         $stubName = $this->getStubName($migrationName);
         $codegen_path = $this->codegen_path("stubs/migration.{$stubName}.stub");
@@ -52,12 +56,7 @@ trait MethodsTrait
 
         $stub = str_replace('{{ fields }}', $fieldsString, $stub);
 
-        if ($migrationType === "add_column"){
-            $dropFieldsString = $this->getFieldNamesString($fields);
-            $stub = str_replace('{{ dropFields }}', $dropFieldsString, $stub);
-        }
-
-        if ($migrationType === "add_columns"){
+        if ($migrationType === "add_column" || $migrationType === "add_columns"){
             $dropFieldsString = $this->getFieldNamesString($fields);
             $stub = str_replace('{{ dropFields }}', $dropFieldsString, $stub);
         }

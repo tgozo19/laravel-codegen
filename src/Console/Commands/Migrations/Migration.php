@@ -8,10 +8,11 @@ use Tgozo\LaravelCodegen\Console\Commands\Migrations\Traits\AddColumnTrait;
 use Tgozo\LaravelCodegen\Console\Commands\Migrations\Traits\CreateTrait;
 use Tgozo\LaravelCodegen\Console\Commands\Seeders\Traits\MethodsTrait as SeederMethodsTrait;
 use Tgozo\LaravelCodegen\Console\Commands\Factories\Traits\MethodsTrait as FactoryMethodsTrait;
+use Tgozo\LaravelCodegen\Console\Commands\Models\Traits\AttributesTrait as ModelAttributesTraits;
 
 class Migration extends MigrationBaseGenerator
 {
-    use CreateTrait, AddColumnTrait, AddColumnsTrait, SeederMethodsTrait, FactoryMethodsTrait;
+    use CreateTrait, AddColumnTrait, AddColumnsTrait, SeederMethodsTrait, FactoryMethodsTrait, ModelAttributesTraits;
     /**
      * The name and signature of the console command.
      *

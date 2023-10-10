@@ -483,7 +483,7 @@ class MigrationBaseGenerator extends Command
             $fieldsString .= ';';
 
             if($index !== $fields_count - 1){
-                $fieldsString .=  PHP_EOL . "\t\t\t";
+                $fieldsString .=  PHP_EOL . "\t\t\t\t";
             }
         }
 

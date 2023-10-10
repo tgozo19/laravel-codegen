@@ -11,14 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('{{ tableName }}', function (Blueprint $table) {
-            $table->id();
+        if(!Schema::hasTable('{{ tableName }}')){
+            Schema::create('{{ tableName }}', function (Blueprint $table) {
+                $table->id();
 
-            {{ fields }}
-            
-            $table->softDeletes();
-            $table->timestamps();
-        });
+                {{ fields }}
+
+                $table->softDeletes();
+                $table->timestamps();
+            });
+        }
     }
 
     /**

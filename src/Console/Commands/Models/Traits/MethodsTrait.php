@@ -83,7 +83,7 @@ trait MethodsTrait
         return str_replace('{{ $casts }}', $castsString, $stub);
     }
 
-    public function createModel($modelName, $fields, $modelType = "standard"): string
+    public function createModel($modelName, $fields, $modelType = "standard", $table_name = null): string
     {
         $modelFile = app_path('Models') . '/' . $modelName . '.php';
 
@@ -91,6 +91,15 @@ trait MethodsTrait
         $codegen_path = $this->codegen_path("stubs/model.{$stubName}.stub");
 
         $stub = $this->model_buffer($codegen_path, $fields, $modelName);
+
+        if ($table_name){
+            $table_name_string = "protected \$table = '$table_name';";
+
+            $class_name_line_pos = strpos($stub, "class {$modelName} extends Model");
+            $next_open_brace_pos = strpos($stub, '{', $class_name_line_pos);
+
+            $stub = substr_replace($stub, PHP_EOL . "\t$table_name_string" . PHP_EOL, $next_open_brace_pos + 1, 0);
+        }
 
         file_put_contents($modelFile, $stub);
 

@@ -37,4 +37,9 @@ trait AttributesTrait
         'deleted_at',
         'email_verified_at'
     ];
+
+    private array $exceptions = [
+        'persons' => 'people',
+        'person' => 'people',
+    ];
 }

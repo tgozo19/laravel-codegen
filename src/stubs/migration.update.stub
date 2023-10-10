@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('{{ tableName }}', function (Blueprint $table) {
-            {{ fields }}
-        });
+        if(Schema::hasTable('{{ tableName }}')){
+            Schema::table('{{ tableName }}', function (Blueprint $table) {
+                {{ fields }}
+            });
+        }
     }
 
     /**
@@ -21,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('{{ tableName }}', function (Blueprint $table) {
-            $table->dropColumn({{ dropFields }});
-        });
+        if(!Schema::hasTable('{{ tableName }}') && Schema::hasColumns('{{ tableName }}', {{ dropFields }})){
+            Schema::table('{{ tableName }}', function (Blueprint $table) {
+                $table->dropColumn({{ dropFields }});
+            });
+        }
     }
 };

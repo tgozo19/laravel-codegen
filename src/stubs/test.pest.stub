@@ -4,4 +4,18 @@
 {{ classes }}
 {{ uses }}
 
+function create_a_{{ lower_model_name }}_if_{{ lower_plural_model_name }}_table_is_empty(): void
+{
+    if ({{ model_name }}::count() === 0) {
+        {{ model_name }}::factory()->create();
+    }
+}
+
+beforeEach(function (){
+    if (!Schema::hasTable('{{ lower_plural_model_name }}')){
+        $this->markTestSkipped("Table {{ lower_plural_model_name }} doesn't exist in your database");
+    }
+    create_a_{{ lower_model_name }}_if_{{ lower_plural_model_name }}_table_is_empty();
+});
+
 {{ tests }}

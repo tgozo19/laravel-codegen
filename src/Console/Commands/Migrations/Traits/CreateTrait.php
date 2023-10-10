@@ -6,18 +6,24 @@ trait CreateTrait
 {
     public function handle_create_command($name, $pattern = "create"): void
     {
+        $table_name = $this->getTableName($name);
+
+        // check for exceptions
+        $table_name_to_be_passed = null;
+        if (array_key_exists($this->str_to_lower($table_name), $this->exceptions)){
+            $table_name_to_be_passed = $this->exceptions[$this->str_to_lower($table_name)];
+        }
+
         $fields = $this->getFields($pattern);
 
-        $created_migration_name = $this->createMigration($name, $fields);
+        $created_migration_name = $this->createMigration($name, $fields, "create", $table_name_to_be_passed);
 
         $this->info("Migration [$created_migration_name] created successfully.");
-
-        $table_name = $this->getTableName($name);
 
         $modelName = $this->singularize($this->format_to_get_model_name($table_name));
 
         if ($this->option('m') || $this->option('all')){
-            $created_model_name = $this->createModel($modelName, $fields);
+            $created_model_name = $this->createModel($modelName, $fields, "standard", $table_name_to_be_passed);
             $this->info("Model [$created_model_name] created successfully.");
         }
 
