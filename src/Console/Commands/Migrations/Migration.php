@@ -18,7 +18,7 @@ class Migration extends MigrationBaseGenerator
      *
      * @var string
      */
-    protected $signature = 'codegen:migration {name?} {--m|m} {--c|c} {--b|b} {--r|r} {--s|s} {--f|f} {--p|p} {--all|all} {--force|force}';
+    protected $signature = 'codegen:migration {name?} {--m|m} {--c|c} {--b|b} {--r|r} {--s|s} {--f|f} {--p|p} {--all|all} {--except=} {--force|force}';
 
     /**
      * The console command description.
@@ -44,6 +44,9 @@ class Migration extends MigrationBaseGenerator
      */
     public function handle(): void
     {
+
+        $except = $this->option('except');
+        info($except);
 
         $name = $this->getMigrationName();
 
