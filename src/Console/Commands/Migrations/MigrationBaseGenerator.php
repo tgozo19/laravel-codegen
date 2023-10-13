@@ -546,4 +546,30 @@ class MigrationBaseGenerator extends Command
         $options_response = $this->ask("Specify any other options. Options should be comma seperated eg. nullable,default:true ");
         return explode(",", $options_response);
     }
+
+    public function validate_except(): void
+    {
+        // the except option values should not contain space and should not be comma seperated
+        // take each character and put it in an array as a single value
+
+        $exceptions = [];
+
+        $except = $this->option('except');
+        if (empty($except)) return;
+
+        $explode = explode(',', $except);
+        foreach ($explode as $value) {
+            $value = trim($value);
+            if (str_contains($value, ' ')){
+                $this->error("The except option values should not contain space");
+                exit;
+            }
+
+            for ($i = 0; $i < strlen($value); $i++) {
+                $exceptions[] = $this->str_to_lower($value[$i]);
+            }
+        }
+
+        $this->option_exceptions = $exceptions;
+    }
 }
