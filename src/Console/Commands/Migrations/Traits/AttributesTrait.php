@@ -116,6 +116,6 @@ trait AttributesTrait
         'after' => ['create_'],
     ];
 
-    protected ?array $option_exceptions;
+    protected ?array $option_exceptions = [];
 
 }
