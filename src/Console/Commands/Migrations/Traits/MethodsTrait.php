@@ -12,7 +12,7 @@ trait MethodsTrait
     public function getFieldNamesString($fields): string
     {
         if (empty($fields)) return "''";
-        if (count($fields) === 1) return "'{$fields[0]['name']}'";
+        if (count($fields) === 1) return "['{$fields[0]['name']}']";
         return "[" . join(',', array_map(function ($field){
             return "'{$field['name']}'";
         }, $fields)) . "]";

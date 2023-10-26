@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if(Schema::hasTable('{{ tableName }}')){
+        if(Schema::hasTable('{{ tableName }}') && !Schema::hasColumns('{{ tableName }}', {{ dropFields }})){
             Schema::table('{{ tableName }}', function (Blueprint $table) {
                 {{ fields }}
             });
@@ -23,7 +23,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        if(!Schema::hasTable('{{ tableName }}') && Schema::hasColumns('{{ tableName }}', {{ dropFields }})){
+        if(Schema::hasTable('{{ tableName }}') && Schema::hasColumns('{{ tableName }}', {{ dropFields }})){
             Schema::table('{{ tableName }}', function (Blueprint $table) {
                 $table->dropColumn({{ dropFields }});
             });

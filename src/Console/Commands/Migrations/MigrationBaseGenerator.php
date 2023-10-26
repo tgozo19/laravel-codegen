@@ -62,7 +62,7 @@ class MigrationBaseGenerator extends Command
         return $not_valid;
     }
 
-    private function get_option_values($options, $valid_options): array
+    private function get_option_values($options, $type): array
     {
         if (empty($options) || gettype($options) === 'string') return [];
         $option_values = [];
@@ -72,6 +72,16 @@ class MigrationBaseGenerator extends Command
             if ($position !== false){
                 $key = substr($value, 0, $position);
                 $value = substr($value, $position + 1);
+
+                if ($type === 'boolean'){
+                    if ($this->str_to_lower($value) === 'true'){
+                        $value = true;
+                    }
+                    if ($this->str_to_lower($value) === 'false'){
+                        $value = false;
+                    }
+                }
+
             }else{
                 $key = $value;
                 $value = true;
@@ -109,7 +119,7 @@ class MigrationBaseGenerator extends Command
                 }
                 if ($type === 'boolean'){
                     if ($optionName === 'default'){
-                        if (gettype($optionValue) !== "boolean"){
+                        if (!in_array($this->str_to_lower($optionValue), ['true', 'false'])){
                             $invalid_values[$optionName] = "should be a boolean";
                         }
                     }
@@ -429,11 +439,20 @@ class MigrationBaseGenerator extends Command
                 $fieldsString .= '->nullable()';
             }
 
-            if (!empty($field['default'])) {
+            if (isset($field['default'])) {
                 if ($field['type'] !== 'boolean' && !in_array($field['type'], $this->numberTypes)) {
                     $field['default'] = "'" . $field['default'] . "'";
+                    $fieldsString .= "->default({$field['default']})";
+                }elseif ($field['type'] === 'boolean') {
+                    if ($field['default'] === true){
+                        $fieldsString .= "->default(true)";
+                    }
+                    if ($field['default'] === false){
+                        $fieldsString .= "->default(false)";
+                    }
+                }else{
+                    $fieldsString .= "->default({$field['default']})";
                 }
-                $fieldsString .= "->default({$field['default']})";
             }
 
             if ($field['first']) {
@@ -526,7 +545,7 @@ class MigrationBaseGenerator extends Command
 
         $options = empty($options) ? [] : $options;
 
-        $valid_options = $this->get_option_values($options, $this->valid_options);
+        $valid_options = $this->get_option_values($options, $fields[$index]['type']);
 
         foreach ($valid_options as $key => $valid_option) {
             $action = $this->option_actions[$key];
