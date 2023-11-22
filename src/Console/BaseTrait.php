@@ -165,6 +165,23 @@ trait BaseTrait
             }
         }
 
+        if (($this->option('p') || $this->option('all'))  && !in_array('p', $this->option_exceptions)){
+            $test_name = "{$model_name}Test";
+            $feature_test_path = base_path('tests') . "/Feature/{$test_name}.php";
+            $unit_test_path = base_path('tests') . "/Unit/{$test_name}.php";
+            $msg_path = null;
+            if (file_exists($feature_test_path)){
+                $msg_path = $feature_test_path;
+            }
+            if (file_exists($unit_test_path) && $msg_path === null){
+                $msg_path = $unit_test_path;
+            }
+
+            if ($msg_path !== null){
+                $found[] = ['Test', $test_name, $msg_path];
+            }
+        }
+
         if (!empty($found)){
             foreach ($found as $item) {
                 $message = "{$item[0]} [{$item[1]}] already exists";
