@@ -25,7 +25,7 @@ class FakerGuesser
         'quantity' => 'fake()->unique()->randomNumber()',
         'user' => 'fake()->unique()->randomNumber()',
         'email' => 'fake()->unique()->safeEmail',
-	'phone_number' => 'fake()->unique()->phoneNumber',
+	    'phone_number' => 'fake()->unique()->phoneNumber',
         'password' => 'fake()->unique()->password',
         'user_id' => 'fake()->unique()->randomNumber()',
         'created_at' => 'now()',
@@ -39,6 +39,7 @@ class FakerGuesser
         'city' => 'fake()->unique()->city',
         'currencyCode' => 'fake()->unique()->currencyCode',
         'currency_code' => 'fake()->unique()->currencyCode',
+        'address' => 'fake()->unique()->address'
     ];
 
     public static function guess($column_name, $column_type = "string"): array
@@ -73,7 +74,7 @@ class FakerGuesser
             return '\Str::random(10);';
         }
 
-	if (str($column_name)->contains('phone_number')) {
+	    if (str($column_name)->contains('phone_number')) {
             return 'fake()->unique()->phoneNumber';
         }
 

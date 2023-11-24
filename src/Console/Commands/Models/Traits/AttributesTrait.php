@@ -41,5 +41,7 @@ trait AttributesTrait
     private array $exceptions = [
         'persons' => 'people',
         'person' => 'people',
+        'genders' => 'gender',
+        'gender' => 'gender',
     ];
 }
