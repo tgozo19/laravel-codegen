@@ -9,6 +9,7 @@ use Tgozo\LaravelCodegen\Console\Commands\Migrations\Traits\CreateTrait;
 use Tgozo\LaravelCodegen\Console\Commands\Seeders\Traits\MethodsTrait as SeederMethodsTrait;
 use Tgozo\LaravelCodegen\Console\Commands\Factories\Traits\MethodsTrait as FactoryMethodsTrait;
 use Tgozo\LaravelCodegen\Console\Commands\Models\Traits\AttributesTrait as ModelAttributesTraits;
+use Tgozo\LaravelCodegen\Controllers\Livewire;
 
 class Migration extends MigrationBaseGenerator
 {
@@ -18,7 +19,7 @@ class Migration extends MigrationBaseGenerator
      *
      * @var string
      */
-     protected $signature = 'make:codegen-migration {name?} {--m|m} {--c|c} {--b|b} {--r|r} {--s|s} {--f|f} {--p|p} {--except=} {--all|all} {--force|force}';
+     protected $signature = 'make:codegen-migration {name?} {--m|m} {--c|c} {--b|b} {--r|r} {--s|s} {--f|f} {--p|p} {--l|l} {--except=} {--all|all} {--force|force}';
 
     /**
      * The console command description.
@@ -44,6 +45,12 @@ class Migration extends MigrationBaseGenerator
      */
     public function handle(): void
     {
+        if ($this->option('l')){
+            $this->info('Valid');
+            $a = new Livewire($this, 'Dog', 'pretend');
+        }
+
+        return;
         $this->validate_except();
 
         $except = $this->option('except');
