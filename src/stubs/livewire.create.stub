@@ -1,0 +1,39 @@
+<?php
+
+namespace App\Livewire\{{ modelName }};
+
+use App\Models\{{ modelName }};
+use Exception;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
+use Livewire\Component;
+
+{{ additionalNamespaces }}
+
+class Create extends Component
+{
+    {{ properties }}
+
+    public function save_{{ lowerSingularModelName }}(): RedirectResponse
+    {
+        try {
+            DB::beginTransaction();
+            {{ modelName }}::create([
+                {{ parameters }}
+            ]);
+            DB::commit();
+            session()->flash('success', '{{ modelName }} Created Successfully');
+            return redirect()->back();
+        }catch (Exception $e){
+            DB::rollBack();
+            info($e->getMessage());
+            session()->flash('error', 'Failed to create {{ modelName }}. Please Try Again');
+            return redirect()->back();
+        }
+    }
+
+    public function render()
+    {
+        return view('livewire.{{ lowerModelName }}.create');
+    }
+}

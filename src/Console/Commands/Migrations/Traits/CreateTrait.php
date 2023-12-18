@@ -2,6 +2,8 @@
 
 namespace Tgozo\LaravelCodegen\Console\Commands\Migrations\Traits;
 
+use Tgozo\LaravelCodegen\Controllers\Livewire;
+
 trait CreateTrait
 {
     public function handle_create_command($name, $pattern = "create"): void
@@ -32,6 +34,12 @@ trait CreateTrait
             $this->info("Controller [$created_controller_name] created successfully.");
             $this->info("6 routes created in routes/web.php file.");
             $this->info("4 views created in resources/views/{$this->str_to_lower($modelName)} directory.");
+        }
+
+        if (($this->option('l') || $this->option('all'))  && !in_array('l', $this->option_exceptions)){
+            $livewire = new Livewire($this, $modelName, $fields);
+            $livewire->createComponents();
+//            $this->info("6 routes created in routes/web.php file.");
         }
 
         if (($this->option('s') || $this->option('all'))  && !in_array('s', $this->option_exceptions)){

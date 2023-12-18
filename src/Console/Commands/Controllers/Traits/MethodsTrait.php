@@ -61,30 +61,6 @@ trait MethodsTrait
         return "return view('{$view_directory_name}.create');";
     }
 
-    public function get_update_or_store_string($fields, $type): array
-    {
-        $str = "";
-        $fields_have_password = false;
-        foreach ($fields as $index => $field) {
-            $field_name = $field['name'];
-
-            if ($field_name === "password"){
-                if ($type === "update") continue;
-                if ($fields_have_password !== true){
-                    $fields_have_password = true;
-                }
-            }
-
-            $field_value = ($field_name === "password") ? "Hash::make(\$request->{$field_name})" : "\$request->{$field_name}";
-
-            $tabs = ($index === count($fields) - 1) ? "\t\t\t" : "\t\t\t\t";
-
-            $str .= "'{$field_name}' => {$field_value}," . PHP_EOL . $tabs;
-        }
-
-        return [$str, $fields_have_password];
-    }
-
     public function getStoreString($modelName, $fields): array
     {
         $str = "try {" . PHP_EOL . "\t\t\t";

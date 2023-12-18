@@ -45,18 +45,14 @@ class Migration extends MigrationBaseGenerator
      */
     public function handle(): void
     {
-        if ($this->option('l')){
-            $this->info('Valid');
-            $a = new Livewire($this, 'Dog', 'pretend');
-        }
-
-        return;
         $this->validate_except();
 
         $except = $this->option('except');
         info($except);
 
         $name = $this->getMigrationName();
+
+        $this->check_migration_existence($name);
 
         $pattern = $this->getPattern($name);
 

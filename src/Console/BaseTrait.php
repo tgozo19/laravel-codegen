@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Route;
 
 trait BaseTrait
 {
+    protected array $namespacesToAdd = [];
+
     public function codegen_path($path): string
     {
         return dirname(__DIR__, 1) . "/{$path}";
@@ -225,6 +227,47 @@ trait BaseTrait
         }
         $str .= "\t];";
         return $str;
+    }
+
+    public function getAdditionalNameSpacesString(): string
+    {
+        $str = "";
+
+        foreach ($this->namespacesToAdd as $index => $nameSpace) {
+            $str .= "use {$nameSpace};";
+            if ($index !== count($this->namespacesToAdd) - 1){
+                $str .= "\n";
+            }
+        }
+
+        return $str;
+    }
+
+    public function get_update_or_store_string($fields, $type, $field_source = "request"): array
+    {
+        $str = "";
+        $fields_have_password = false;
+        foreach ($fields as $index => $field) {
+            $field_name = $field['name'];
+
+            if ($field_name === "password"){
+                if ($type === "update") continue;
+                if ($fields_have_password !== true){
+                    if (!in_array("Illuminate\Support\Facades\Hash", $this->namespacesToAdd)){
+                        $this->namespacesToAdd[] = "Illuminate\Support\Facades\Hash";
+                    }
+                    $fields_have_password = true;
+                }
+            }
+
+            $field_value = ($field_name === "password") ? "Hash::make(\${$field_source}->{$field_name})" : "\${$field_source}->{$field_name}";
+
+            $tabs = ($index === count($fields) - 1) ? "\t\t\t" : "\t\t\t\t";
+
+            $str .= "'{$field_name}' => {$field_value}," . PHP_EOL . $tabs;
+        }
+
+        return [trim($str), $fields_have_password];
     }
 
 }

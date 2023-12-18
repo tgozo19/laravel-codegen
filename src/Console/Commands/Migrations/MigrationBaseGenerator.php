@@ -2,6 +2,7 @@
 
 namespace Tgozo\LaravelCodegen\Console\Commands\Migrations;
 
+use Exception;
 use Illuminate\Console\Command;
 use Tgozo\LaravelCodegen\Console\BaseTrait;
 use Tgozo\LaravelCodegen\Console\Commands\Migrations\Traits\AttributesTrait;
@@ -13,6 +14,27 @@ use Tgozo\LaravelCodegen\Console\Commands\Pest\Traits\MethodsTrait as PestMethod
 class MigrationBaseGenerator extends Command
 {
     use BaseTrait, AttributesTrait, MethodsTrait, ModelsMethodsTrait, ControllersMethodsTrait, PestMethodsTrait;
+
+    public function check_migration_existence($name): void
+    {
+        if ($this->option('force')){
+            return;
+        }
+        try {
+            $migrations_directory = base_path('database/migrations');
+            $files = scandir($migrations_directory);
+            if ($files === false){
+                exit;
+            }
+            foreach ($files as $file){
+                if (str_contains($file, $name)){
+                    $this->error("A similar migration already exists: $file");
+                    $this->info("\nTo forcefully create a similar migration, run the command with the --force flag");
+                    exit;
+                }
+            }
+        }catch (Exception $e){}
+    }
 
     public function getMigrationName()
     {
