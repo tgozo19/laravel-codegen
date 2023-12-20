@@ -87,8 +87,7 @@ trait MethodsTrait
         $singularizedModelName = $this->singularize($modelName);
         $data_variable = $this->str_to_lower($singularizedModelName);
         $view_directory_name = $this->str_to_lower($modelName);
-        $str = "\${$data_variable} = {$modelName}::findOrFail(\$id);" . PHP_EOL . "\t\t";
-        $str .= "return view('{$view_directory_name}.show', compact('$data_variable'));";
+        $str = "return view('{$view_directory_name}.show', compact('$data_variable'));";
 
         $directory = "resources/views/{$view_directory_name}";
         $file = "{$directory}/show.blade.php";
@@ -103,8 +102,7 @@ trait MethodsTrait
         $singularizedModelName = $this->singularize($modelName);
         $data_variable = $this->str_to_lower($singularizedModelName);
         $view_directory_name = $this->str_to_lower($modelName);
-        $str = "\${$data_variable} = {$modelName}::findOrFail(\$id);" . PHP_EOL . "\t\t";
-        $str .= "return view('{$view_directory_name}.edit', compact('$data_variable'));";
+        $str = "return view('{$view_directory_name}.edit', compact('$data_variable'));";
 
         $directory = "resources/views/{$view_directory_name}";
         $file = "{$directory}/edit.blade.php";
@@ -186,6 +184,8 @@ trait MethodsTrait
 
         $stub = str_replace('{{ modelName }}', $modelName, $stub);
 
+        $stub = str_replace('{{ lowerModelName }}', $this->str_to_lower($modelName), $stub);
+
         $stub = str_replace('{{ pluralizedModelName }}', $pluralizedModelName, $stub);
 
         $stub = str_replace('{{ controllerName }}', $controllerName, $stub);
@@ -211,8 +211,8 @@ trait MethodsTrait
         $modelName = $this->str_to_lower($modelName);
         $str = "Route::controller($controllerName::class)->middleware([])->group(function (){" . PHP_EOL . "\t";
         $str .= "Route::get('$pluralizedModelName', 'index')->name('view-$pluralizedModelName');" . PHP_EOL . "\t";
-        $str .= "Route::get('$pluralizedModelName/{id}', 'show')->name('show-$modelName');" . PHP_EOL . "\t";
-        $str .= "Route::get('edit-$modelName/{id}', 'edit')->name('edit-$modelName');" . PHP_EOL . "\t";
+        $str .= "Route::get('$pluralizedModelName/{{$modelName}}', 'show')->name('show-$modelName');" . PHP_EOL . "\t";
+        $str .= "Route::get('edit-$modelName/{{$modelName}}', 'edit')->name('edit-$modelName');" . PHP_EOL . "\t";
         $str .= "Route::get('create-$modelName', 'create')->name('create-$modelName');" . PHP_EOL . "\t";
         $str .= "Route::post('store-$modelName', 'store')->name('store-$modelName');" . PHP_EOL . "\t";
         $str .= "Route::post('update-$modelName', 'update')->name('update-$modelName');" . PHP_EOL . "\t";

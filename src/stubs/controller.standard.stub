@@ -45,20 +45,20 @@ class {{ controllerName }} extends Controller
 
     /**
      * Display the specified {{ modelName }}.
-     * @param string $id
+     * @param {{ modelName }} ${{ lowerModelName }}
      * @return Application|Factory|View|\Illuminate\Foundation\Application
      */
-    public function show(string $id)
+    public function show({{ modelName }} ${{ lowerModelName }})
     {
         {{ showCode }}
     }
 
     /**
      * Show the form for editing the specified {{ modelName }}.
-     * @param string $id
+     * @param {{ modelName }} ${{ lowerModelName }}
      * @return Application|Factory|View|\Illuminate\Foundation\Application
      */
-    public function edit(string $id)
+    public function edit({{ modelName }} ${{ lowerModelName }})
     {
         {{ editCode }}
     }
@@ -66,7 +66,6 @@ class {{ controllerName }} extends Controller
     /**
      * Update the specified {{ modelName }} in storage.
      * @param Request $request
-     * @param string $id
      * @return RedirectResponse
      */
     public function update(Request $request)
