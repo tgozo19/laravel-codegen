@@ -3,7 +3,6 @@
 namespace Tgozo\LaravelCodegen\Console;
 
 use Illuminate\Support\Facades\Hash;
-use Str;
 
 class FakerGuesser
 {
@@ -71,7 +70,7 @@ class FakerGuesser
         }
 
         if (str($column_name)->contains('token')) {
-            return '\Str::random(10);';
+            return '\Str::random(10)';
         }
 
 	    if (str($column_name)->contains('phone_number')) {
