@@ -461,7 +461,7 @@ class MigrationBaseGenerator extends Command
                 $fieldsString .= '->nullable()';
             }
 
-            if (isset($field['default'])) {
+            if (!empty($field['default'])) {
                 if ($field['type'] !== 'boolean' && !in_array($field['type'], $this->numberTypes)) {
                     $field['default'] = "'" . $field['default'] . "'";
                     $fieldsString .= "->default({$field['default']})";
