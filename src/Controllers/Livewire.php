@@ -48,7 +48,7 @@ class Livewire
 
         $this->replaceComponents(self::COMPONENT_NAMES);
 
-//        $this->create_routes();
+        $this->create_routes();
     }
 
     public function pretend(): void
@@ -93,7 +93,7 @@ class Livewire
         return trim($str);
     }
 
-    public function generateCreateComponent()
+    public function generateCreateComponent(): void
     {
         $stub = $this->load_stub('livewire.create');
 
@@ -109,15 +109,57 @@ class Livewire
 
         $stub = str_replace('{{ properties }}', $properties, $stub);
 
-        $stub = str_replace('{{ lowerSingularModelName }}', $this->str_to_lower($this->modelName), $stub);
+        $stub = str_replace('{{ methodModelName }}', $this->singularize($this->getDataVariable($this->modelName)), $stub);
 
         $stub = str_replace('{{ parameters }}', $createParameters, $stub);
 
-        $stub = str_replace('{{ lowerModelName }}', $this->str_to_lower($this->modelName), $stub);
+        $stub = str_replace('{{ singularTitle }}', $this->getModelTitle($this->modelName), $stub);
+
+        $stub = str_replace('{{ directoryName }}', $this->getViewDirectoryName($this->modelName), $stub);
+
+        $stub = str_replace('{{ title }}', $this->getModelTitle($this->modelName, true), $stub);
 
         $createComponentFile = app_path("Livewire/{$this->modelName}") . '/Create.php';
 
         file_put_contents($createComponentFile, $stub);
+    }
+
+    public function generateViewComponent(): void
+    {
+        $stub = $this->load_stub('livewire.view');
+
+        $fetchString = $this->getFetchString($this->modelName, 'view', 'livewire');
+
+        $stub = str_replace('{{ modelName }}', $this->modelName, $stub);
+
+        $stub = str_replace('{{ title }}', $this->getModelTitle($this->modelName, true), $stub);
+
+        $stub = str_replace('{{ fetchString }}', $fetchString, $stub);
+
+        $viewComponentFile = app_path("Livewire/{$this->modelName}") . '/View.php';
+
+        file_put_contents($viewComponentFile, $stub);
+    }
+
+    public function generateShowComponent(): void
+    {
+        $stub = $this->load_stub('livewire.show');
+
+        $stub = str_replace('{{ modelName }}', $this->modelName, $stub);
+
+        $dataVariable = $this->getDataVariable($this->modelName, '_', false);
+        $stub = str_replace('{{ dataVariable }}', $dataVariable, $stub);
+
+        $stub = str_replace('{{ title }}', $this->getModelTitle($this->modelName), $stub);
+
+        $routeVariable = $this->getDataVariable($this->modelName, '-', false);
+        $stub = str_replace('{{ viewRoute }}', $this->pluralize($routeVariable), $stub);
+
+        $stub = str_replace('{{ directoryName }}', $this->getViewDirectoryName($this->modelName), $stub);
+
+        $showComponentFile = app_path("Livewire/{$this->modelName}") . '/Show.php';
+
+        file_put_contents($showComponentFile, $stub);
     }
 
     public function replaceComponents($componentNames): void
@@ -137,9 +179,9 @@ class Livewire
         foreach (self::COMPONENT_NAMES as $COMPONENT_NAME) {
             $plural = $this->isPlural($COMPONENT_NAME);
             if ($plural){
-                $route_model_string = $this->str_to_lower($this->pluralize($this->modelName));
+                $route_model_string = $this->str_to_lower($this->getDataVariable($this->pluralize($this->modelName), '-'));
             }else{
-                $route_model_string = $this->str_to_lower($this->singularize($this->modelName));
+                $route_model_string = $this->str_to_lower($this->getDataVariable($this->singularize($this->modelName), '-'));
             }
             $as = $this->return_as($COMPONENT_NAME);
             $request_type = self::COMPONENT_REQUEST_TYPE[$this->str_to_lower($COMPONENT_NAME)];

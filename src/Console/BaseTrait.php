@@ -3,6 +3,7 @@
 namespace Tgozo\LaravelCodegen\Console;
 
 use Doctrine\Inflector\Inflector;
+use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Route;
 
 trait BaseTrait
@@ -243,6 +244,22 @@ trait BaseTrait
         return $str;
     }
 
+    public function create_view(string $directory, string $file): void
+    {
+        if (!file_exists($directory)) {
+            mkdir(base_path($directory));
+        }
+        $quote = Inspiring::quotes()->random();
+
+        $codegen_path = $this->codegen_path("stubs/blank_view.stub");
+
+        $blank_view = file_get_contents($codegen_path);
+
+        $blank_view = str_replace('quote', $quote, $blank_view);
+
+        file_put_contents($file, $blank_view);
+    }
+
     public function get_update_or_store_string($fields, $type, $field_source = "request"): array
     {
         $str = "";
@@ -260,7 +277,7 @@ trait BaseTrait
                 }
             }
 
-            $field_value = ($field_name === "password") ? "Hash::make(\${$field_source}->{$field_name})" : "\${$field_source}->{$field_name}";
+            $field_value = $this->getFieldValue($field_source, $field_name);
 
             $tabs = ($index === count($fields) - 1) ? "\t\t\t" : "\t\t\t\t";
 
@@ -268,6 +285,89 @@ trait BaseTrait
         }
 
         return [trim($str), $fields_have_password];
+    }
+
+    public function getFieldValue($field_source, $field_name): string
+    {
+        if ($field_name === 'password'){
+            return "Hash::make(\${$field_source}->{$field_name})";
+        }
+
+        if ($field_name === 'user_id'){
+            return "auth()->user()->id";
+        }
+
+        return "\${$field_source}->{$field_name}";
+    }
+
+    public function getFetchString($modelName, $view = 'index', $prefix = ''): string
+    {
+        $directoryPrefix = '';
+        if ($prefix !== ''){
+            $directoryPrefix = $prefix . '/';
+            $prefix = $prefix . '.';
+        }
+
+        $data_variable = $this->getDataVariable($modelName);
+
+        $view_directory_name = $this->getViewDirectoryName($modelName);
+        $str = "\${$data_variable} = {$modelName}::query()->paginate();" . PHP_EOL . "\t\t";
+        $str .= "return view('{$prefix}{$view_directory_name}.{$view}', compact('$data_variable'));";
+
+        $directory = "resources/views/{$directoryPrefix}{$view_directory_name}";
+        $file = "{$directory}/{$view}.blade.php";
+
+        $this->create_view($directory, $file);
+
+        return $str;
+    }
+
+    public function getDataVariable($modelName, $separator = '_', $plural = true): string
+    {
+        if ($plural){
+            $modelName = $this->pluralize($modelName);
+        }
+        $modelNameCharacters = str_split($modelName);
+        $data_variable = '';
+        foreach ($modelNameCharacters as $index => $modelNameCharacter) {
+            if (ctype_upper($modelNameCharacter) && $index !== 0){
+                $modelNameCharacter = $separator . $modelNameCharacter;
+            }
+            $data_variable .= $modelNameCharacter;
+        }
+
+        return $this->str_to_lower($data_variable);
+    }
+
+    public function getModelTitle($modelName, $plural = false, $separator = ' '): string
+    {
+        if ($plural){
+            $modelName = $this->pluralize($modelName);
+        }
+        $modelNameCharacters = str_split($modelName);
+        $title = '';
+        foreach ($modelNameCharacters as $index => $modelNameCharacter) {
+            if (ctype_upper($modelNameCharacter) && $index !== 0){
+                $modelNameCharacter = $separator . $modelNameCharacter;
+            }
+            $title .= $modelNameCharacter;
+        }
+
+        return $title;
+    }
+
+    public function getViewDirectoryName($modelName): string
+    {
+        $modelNameCharacters = str_split($modelName);
+        $data_variable = '';
+        foreach ($modelNameCharacters as $index => $modelNameCharacter) {
+            if (ctype_upper($modelNameCharacter) && $index !== 0){
+                $modelNameCharacter = '-' . $modelNameCharacter;
+            }
+            $data_variable .= $modelNameCharacter;
+        }
+
+        return $this->str_to_lower($data_variable);
     }
 
 }

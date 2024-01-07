@@ -2,51 +2,13 @@
 
 namespace Tgozo\LaravelCodegen\Console\Commands\Controllers\Traits;
 
-use App\Models\User;
-use Exception;
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-
 trait MethodsTrait
 {
     use AttributesTrait;
 
-    public function create_view(string $directory, string $file): void
-    {
-        if (!file_exists($directory)) {
-            mkdir(base_path($directory));
-        }
-        $quote = Inspiring::quotes()->random();
-
-        $codegen_path = $this->codegen_path("stubs/blank_view.stub");
-
-        $blank_view = file_get_contents($codegen_path);
-
-        $blank_view = str_replace('quote', $quote, $blank_view);
-
-        file_put_contents($file, $blank_view);
-    }
-
     public function getControllerStubName($name)
     {
         return $this->controller_stub_names[$name];
-    }
-
-    public function getFetchString($modelName): string
-    {
-        $pluralizedModelName = $this->pluralize($modelName);
-        $data_variable = $this->str_to_lower($pluralizedModelName);
-        $view_directory_name = $this->str_to_lower($modelName);
-        $str = "\${$data_variable} = {$modelName}::query()->paginate();" . PHP_EOL . "\t\t";
-        $str .= "return view('{$view_directory_name}.index', compact('$data_variable'));";
-
-        $directory = "resources/views/{$view_directory_name}";
-        $file = "{$directory}/index.blade.php";
-
-        $this->create_view($directory, $file);
-
-        return $str;
     }
 
     public function getCreateString($modelName): string

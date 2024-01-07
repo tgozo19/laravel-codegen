@@ -2,6 +2,8 @@
 
 namespace App\Livewire\{{ modelName }};
 
+use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use App\Models\{{ modelName }};
 use Exception;
 use Illuminate\Http\RedirectResponse;
@@ -14,7 +16,7 @@ class Create extends Component
 {
     {{ properties }}
 
-    public function save_{{ lowerSingularModelName }}(): RedirectResponse
+    public function save_{{ methodModelName }}(): RedirectResponse
     {
         try {
             DB::beginTransaction();
@@ -22,18 +24,20 @@ class Create extends Component
                 {{ parameters }}
             ]);
             DB::commit();
-            session()->flash('success', '{{ modelName }} Created Successfully');
+            session()->flash('success', '{{ singularTitle }} Created Successfully');
             return redirect()->back();
         }catch (Exception $e){
             DB::rollBack();
             info($e->getMessage());
-            session()->flash('error', 'Failed to create {{ modelName }}. Please Try Again');
+            session()->flash('error', 'Failed to create {{ singularTitle }}. Please Try Again');
             return redirect()->back();
         }
     }
 
+    #[Title('Create {{ title }}')]
+    #[Layout('layout.base')]
     public function render()
     {
-        return view('livewire.{{ lowerModelName }}.create');
+        return view('livewire.{{ directoryName }}.create');
     }
 }
