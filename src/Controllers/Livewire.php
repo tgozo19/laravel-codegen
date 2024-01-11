@@ -2,26 +2,49 @@
 
 namespace Tgozo\LaravelCodegen\Controllers;
 
+use Exception;
 use Tgozo\LaravelCodegen\Console\BaseTrait;
 
 class Livewire
 {
     use BaseTrait;
 
-    const COMPONENT_NAMES = ['View', 'Show', 'Edit', 'Create', 'Store', 'Update', 'Delete'];
+    const COMPONENT_NAMES = ['View', 'Show', 'Edit', 'Create'];
 
-    const IS_COMPONENT_PREFIXED = ['view' => false, 'show' => false, 'edit' => true, 'create' => true, 'store' => true, 'update' => true, 'delete' => true];
+    const IS_COMPONENT_PREFIXED = ['view' => false, 'show' => false, 'edit' => true, 'create' => true];
 
-    const COMPONENT_NEEDS_ID = ['view' => false, 'show' => true, 'edit' => true, 'create' => false, 'store' => false, 'update' => false, 'delete' => false];
+    const COMPONENT_NEEDS_ID = ['view' => false, 'show' => true, 'edit' => true, 'create' => false];
 
-    const COMPONENT_REQUEST_TYPE = ['view' => 'get', 'show' => 'get', 'edit' => 'get', 'create' => 'get', 'store' => 'post', 'update' => 'post', 'delete' => 'post'];
+    const COMPONENT_REQUEST_TYPE = ['view' => 'get', 'show' => 'get', 'edit' => 'get', 'create' => 'get'];
 
-    const COMPONENT_NAMES_NAMESPACE = ['view' => 'plural', 'show' => 'singular', 'edit' => 'singular', 'create' => 'singular', 'store' => 'singular', 'update' => 'singular', 'delete' => 'plural'];
+    const COMPONENT_NAMES_NAMESPACE = ['view' => 'plural', 'show' => 'singular', 'edit' => 'singular', 'create' => 'singular'];
 
     protected array $pretendMessages = ['success' => [], 'failures' => []];
 
-    public function __construct(protected readonly mixed $package, protected string $modelName, protected readonly array $fields)
+    /**
+     * @throws Exception
+     */
+    public function __construct(protected readonly mixed $package, protected readonly string $modelName, protected readonly array $fields)
     {
+        self::verifyInstallation(true);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public static function verifyInstallation($throwException = false): bool
+    {
+        $exists = file_exists(base_path('vendor/livewire/livewire2'));
+
+        if ($exists){
+            return true;
+        }
+
+        if (!$throwException){
+            return false;
+        }
+
+        throw new Exception("Livewire is not installed. Install Livewire first or remove the --l flag from the command");
     }
 
     public function __invoke(): void
@@ -31,11 +54,9 @@ class Livewire
 
     public function createComponents(): void
     {
-        // modelName => Dog
         $this->pretend();
 
         if (count($this->pretendMessages['failures']) !== 0 && !$this->package->option('force')){
-            // list existing components
             foreach ($this->pretendMessages['failures'] as $failure){
                 $this->package->error("Livewire Component: {$this->modelName}/{$failure} already exists");
             }
@@ -76,13 +97,15 @@ class Livewire
         $this->package->info("Livewire Component: {$this->modelName}/{$componentName} created");
     }
 
-    public function get_properties_string($fields): string
+    public function get_properties_string($withAttributes = true): string
     {
         $str = "";
 
-        foreach ($fields as $field) {
+        foreach ($this->fields as $field) {
             if (!$field['nullable']){
-                $str .= "#[Rule('required', message: '{$field['name']} is required')]\n\t";
+                if ($withAttributes){
+                    $str .= "#[Rule('required', message: '{$field['name']} is required')]\n\t";
+                }
                 if (!in_array("Livewire\Attributes\Rule", $this->namespacesToAdd)){
                     $this->namespacesToAdd[] = "Livewire\Attributes\Rule";
                 }
@@ -93,11 +116,38 @@ class Livewire
         return trim($str);
     }
 
+    public function extractProperties(): array
+    {
+        $properties = [];
+        foreach ($this->fields as $field) {
+            $properties[] = $field['name'];
+        }
+
+        return $properties;
+    }
+
+    public function assignmentString(bool $reversed, string $property): string
+    {
+        if ($reversed){
+            return "\$this->resource->{$property} = \$this->{$property};";
+        }
+
+        return "\$this->{$property} = \$this->resource->{$property};";
+    }
+
+    public function assignmentLogic(bool $reversed): string
+    {
+        $str = "";
+        foreach ($this->extractProperties() as $property) {
+            $str .= $this->assignmentString($reversed, $property) . PHP_EOL . "\t\t";
+        }
+
+        return trim($str);
+    }
+
     public function generateCreateComponent(): void
     {
         $stub = $this->load_stub('livewire.create');
-
-        $properties = $this->get_properties_string($this->fields);
 
         list($createParameters) = $this->get_update_or_store_string($this->fields, "create", "this");
 
@@ -107,6 +157,7 @@ class Livewire
 
         $stub = str_replace('{{ additionalNamespaces }}', $additionalNameSpacesString, $stub);
 
+        $properties = $this->get_properties_string();
         $stub = str_replace('{{ properties }}', $properties, $stub);
 
         $stub = str_replace('{{ methodModelName }}', $this->singularize($this->getDataVariable($this->modelName)), $stub);
@@ -162,6 +213,33 @@ class Livewire
         file_put_contents($showComponentFile, $stub);
     }
 
+    public function generateEditComponent(): void
+    {
+        $stub = $this->load_stub('livewire.edit');
+
+        $stub = str_replace('{{ modelName }}', $this->modelName, $stub);
+
+        $properties = $this->get_properties_string(false);
+        $stub = str_replace('{{ properties }}', $properties, $stub);
+
+        $mountLogic = $this->assignmentLogic(false);
+        $stub = str_replace('{{ mountLogic }}', $mountLogic, $stub);
+
+        $updateLogic = $this->assignmentLogic(true);
+        $stub = str_replace('{{ updateLogic }}', $updateLogic, $stub);
+
+        $stub = str_replace('{{ title }}', $this->getModelTitle($this->modelName), $stub);
+
+        $dataVariable = $this->getDataVariable($this->modelName, '_', false);
+        $stub = str_replace('{{ dataVariable }}', $dataVariable, $stub);
+
+        $stub = str_replace('{{ directoryName }}', $this->getViewDirectoryName($this->modelName), $stub);
+
+        $editComponentFile = app_path("Livewire/{$this->modelName}") . '/Edit.php';
+
+        file_put_contents($editComponentFile, $stub);
+    }
+
     public function replaceComponents($componentNames): void
     {
         foreach ($componentNames as $componentName) {
@@ -215,14 +293,16 @@ class Livewire
 
             $new_file = file_get_contents(base_path($file_path));
 
-            if (!str_contains($new_file, $name_space)){
-                $replace_string = "<?php" . PHP_EOL;
-                $replace_string .= $name_space;
-
-                $new_file_contents = str_replace("<?php", $replace_string, $new_file);
-
-                file_put_contents(base_path($file_path), $new_file_contents);
+            if (str_contains($new_file, $name_space)){
+                continue;
             }
+
+            $replace_string = "<?php" . PHP_EOL;
+            $replace_string .= $name_space;
+
+            $new_file_contents = str_replace("<?php", $replace_string, $new_file);
+
+            file_put_contents(base_path($file_path), $new_file_contents);
         }
 
         $file = fopen(base_path($file_path), 'a+');

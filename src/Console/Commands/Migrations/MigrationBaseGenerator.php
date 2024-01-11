@@ -613,4 +613,6 @@ class MigrationBaseGenerator extends Command
 
         $this->option_exceptions = $exceptions;
     }
+
+
 }

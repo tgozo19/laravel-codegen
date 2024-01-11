@@ -1,0 +1,52 @@
+<?php
+
+namespace App\Livewire\{{ modelName }};
+
+use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
+use App\Models\{{ modelName }};
+use Livewire\Component;
+
+class Edit extends Component
+{
+    public ?string $id = null;
+
+    public ?{{ modelName }} $resource = null;
+
+    {{ properties }}
+
+    public function mount($id): void
+    {
+        $this->id = $id;
+        $this->resource = {{ modelName }}::findOrFail($this->id);
+
+        {{ mountLogic }}
+    }
+
+    public function edit()
+    {
+        $this->resetErrorBag();
+        if (!$this->resource){
+            $this->addError('error', "{{ modelName }} doesn't exist. Please Try Again");
+            return;
+        }
+
+        {{ updateLogic }}
+
+        if (!$this->resource->save()){
+            $this->addError('error', 'Failed to update {{ modelName }}. Please Try Again');
+            return;
+        }
+
+        session()->flash('success', '{{ modelName }} updated successfully');
+        return redirect(request()->header('Referer'));
+    }
+
+    #[Title('Edit {{ title }}')]
+    #[Layout('layout.base')]
+    public function render()
+    {
+        ${{ dataVariable }} = $this->resource;
+        return view('livewire.{{ directoryName }}.edit', compact('{{ dataVariable }}'));
+    }
+}

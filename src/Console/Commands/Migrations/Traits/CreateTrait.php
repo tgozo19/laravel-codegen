@@ -6,8 +6,15 @@ use Tgozo\LaravelCodegen\Controllers\Livewire;
 
 trait CreateTrait
 {
+    /**
+     * @throws \Exception
+     */
     public function handle_create_command($name, $pattern = "create"): void
     {
+        if (($this->option('l') || $this->option('all'))  && !in_array('l', $this->option_exceptions)){
+            Livewire::verifyInstallation(true);
+        }
+
         $table_name = $this->getTableName($name);
 
         $table_name_to_be_passed = null;
@@ -39,7 +46,6 @@ trait CreateTrait
         if (($this->option('l') || $this->option('all'))  && !in_array('l', $this->option_exceptions)){
             $livewire = new Livewire($this, $modelName, $fields);
             $livewire->createComponents();
-//            $this->info("6 routes created in routes/web.php file.");
         }
 
         if (($this->option('s') || $this->option('all'))  && !in_array('s', $this->option_exceptions)){
