@@ -10,6 +10,7 @@ use Tgozo\LaravelCodegen\Console\Commands\Migrations\Traits\MethodsTrait;
 use Tgozo\LaravelCodegen\Console\Commands\Models\Traits\MethodsTrait as ModelsMethodsTrait;
 use Tgozo\LaravelCodegen\Console\Commands\Controllers\Traits\MethodsTrait as ControllersMethodsTrait;
 use Tgozo\LaravelCodegen\Console\Commands\Pest\Traits\MethodsTrait as PestMethodsTrait;
+use Tgozo\LaravelCodegen\Controllers\RelationShips;
 
 class MigrationBaseGenerator extends Command
 {
@@ -614,5 +615,48 @@ class MigrationBaseGenerator extends Command
         $this->option_exceptions = $exceptions;
     }
 
+    public function validateRelations(): void
+    {
+        $relates = $this->option('relates');
+        if (empty($relates)) return;
 
+        $relationships = explode(',', $relates);
+
+        foreach ($relationships as $relationship) {
+            $arr = explode('->', $relationship);
+            $relationshipName = $arr[0];
+            if (!in_array($relationshipName, RelationShips::RELATIONSHIPS)){
+                $this->error("The relation {$relationshipName} is not supported");
+                exit;
+            }
+            if (count($arr) < 2) continue;
+
+            $arguments = explode(':', $arr[1]);
+            $argumentsCount = count($arguments);
+
+            if (!array_key_exists($relationshipName, RelationShips::ARGUMENTS_REQUIRED)) continue;
+
+            $minimumArguments = RelationShips::ARGUMENTS_REQUIRED[$relationshipName]['min'];
+            if ($argumentsCount < $minimumArguments){
+                $this->error("The relation {$relationshipName} expects a minimum of {$minimumArguments} argument(s) not {$argumentsCount}");
+                exit;
+            }
+
+            $maximumArguments = RelationShips::ARGUMENTS_REQUIRED[$relationshipName]['max'];
+            if (count($arguments) > $maximumArguments){
+                $this->error("The relation {$relationshipName} expects a maximum of {$maximumArguments} argument(s) not {$argumentsCount}");
+                exit;
+            }
+
+            $this->relationships[] = [
+                'type' => $relationshipName,
+                'model' => array_filter($arguments, function ($argument, $index){
+                    return $index === 0;
+                }, ARRAY_FILTER_USE_BOTH)[0],
+                'parameters' => array_filter($arguments, function ($argument, $index){
+                    return $index !== 0;
+                }, ARRAY_FILTER_USE_BOTH),
+            ];
+        }
+    }
 }

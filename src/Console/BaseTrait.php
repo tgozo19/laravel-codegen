@@ -10,6 +10,8 @@ trait BaseTrait
 {
     protected array $namespacesToAdd = [];
 
+    protected array $relationships = [];
+
     public function codegen_path($path): string
     {
         return dirname(__DIR__, 1) . "/{$path}";
@@ -368,6 +370,16 @@ trait BaseTrait
         }
 
         return $this->str_to_lower($data_variable);
+    }
+
+    public function findClosingBrace($str, $pos) {
+        if ($str[$pos] == '{') {
+            return $this->findClosingBrace($str, $this->findClosingBrace($str, $pos + 1) + 1);
+        } elseif ($str[$pos] == '}') {
+            return $pos;
+        } else {
+            return $this->findClosingBrace($str, $pos + 1);
+        }
     }
 
 }

@@ -3,6 +3,7 @@
 namespace Tgozo\LaravelCodegen\Console\Commands\Migrations\Traits;
 
 use Tgozo\LaravelCodegen\Controllers\Livewire;
+use Tgozo\LaravelCodegen\Controllers\RelationShips;
 
 trait CreateTrait
 {
@@ -58,6 +59,11 @@ trait CreateTrait
 
         if (($this->option('p') || $this->option('all'))  && !in_array('p', $this->option_exceptions)){
             $this->create_tests($modelName, $fields);
+        }
+
+        if ($this->option('relates')  && !in_array('relates', $this->option_exceptions)){
+            $relationships = new RelationShips($this, $modelName, $this->relationships);
+            $relationships->generateRelationships();
         }
     }
 }

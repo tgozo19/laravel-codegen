@@ -34,7 +34,7 @@ class Livewire
      */
     public static function verifyInstallation($throwException = false): bool
     {
-        $exists = file_exists(base_path('vendor/livewire/livewire2'));
+        $exists = file_exists(base_path('vendor/livewire/livewire'));
 
         if ($exists){
             return true;
