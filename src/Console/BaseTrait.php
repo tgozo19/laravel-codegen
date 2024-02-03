@@ -382,4 +382,30 @@ trait BaseTrait
         }
     }
 
+    public function registerNamespace($namespace): void
+    {
+        if (!in_array($namespace, $this->namespacesToAdd)){
+            $this->namespacesToAdd[] = $namespace;
+        }
+    }
+
+    public function addNamespaces($file, $use_file = true): array|bool|int|string
+    {
+        if ($use_file){
+            $file_contents = file_get_contents($file);
+        }else{
+            $file_contents = $file;
+        }
+        $class_pos = strpos($file_contents, "class");
+
+        $new_code = trim($this->getAdditionalNameSpacesString());
+
+        $new_file_contents = substr_replace($file_contents, "\t$new_code\n\n", $class_pos, 0);
+
+        if (!$use_file){
+            return $new_file_contents;
+        }
+        return file_put_contents($file, $new_file_contents);
+    }
+
 }
