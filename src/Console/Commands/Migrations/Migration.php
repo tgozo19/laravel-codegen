@@ -45,6 +45,8 @@ class Migration extends MigrationBaseGenerator
      */
     public function handle(): void
     {
+        $this->extractOptions();
+
         $this->validate_except();
 
         $this->validateRelations();

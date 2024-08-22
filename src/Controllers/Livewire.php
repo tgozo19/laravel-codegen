@@ -52,6 +52,9 @@ class Livewire
         $this->createComponents();
     }
 
+    /**
+     * @throws Exception
+     */
     public function createComponents(): void
     {
         $this->pretend();
@@ -69,7 +72,7 @@ class Livewire
 
         $this->replaceComponents(self::COMPONENT_NAMES);
 
-        $this->create_routes();
+        (new Routes($this->package, $this->modelName, $this->fields))->create_routes();
     }
 
     public function pretend(): void
@@ -248,82 +251,5 @@ class Livewire
                 continue;
             $this->{$functionName}();
         }
-    }
-
-    public function getRoutesString(): string
-    {
-        $str = "";
-
-        foreach (self::COMPONENT_NAMES as $COMPONENT_NAME) {
-            $plural = $this->isPlural($COMPONENT_NAME);
-            if ($plural){
-                $route_model_string = $this->str_to_lower($this->getDataVariable($this->pluralize($this->modelName), '-'));
-            }else{
-                $route_model_string = $this->str_to_lower($this->getDataVariable($this->singularize($this->modelName), '-'));
-            }
-            $as = $this->return_as($COMPONENT_NAME);
-            $request_type = self::COMPONENT_REQUEST_TYPE[$this->str_to_lower($COMPONENT_NAME)];
-            $is_prefixed = self::IS_COMPONENT_PREFIXED[$this->str_to_lower($COMPONENT_NAME)];
-            $needs_id = self::COMPONENT_NEEDS_ID[$this->str_to_lower($COMPONENT_NAME)];
-
-            if ($is_prefixed){
-                $url = "{$this->str_to_lower($COMPONENT_NAME)}-$route_model_string";
-            }else{
-                $url = $route_model_string;
-            }
-
-            if ($needs_id){
-                $url .= "/{id}";
-            }
-
-            $str .= "Route::$request_type('$url', $as::class)->name('{$this->str_to_lower($COMPONENT_NAME)}-$route_model_string');" . PHP_EOL;
-        }
-
-        return $str;
-    }
-
-    public function create_routes(): void
-    {
-        $file_path = "routes/web.php";
-        $routesString = $this->getRoutesString();
-
-        foreach (self::COMPONENT_NAMES as $COMPONENT_NAME) {
-            $as = $this->return_as($COMPONENT_NAME);
-            $name_space = "use App\Livewire\\$this->modelName\\$COMPONENT_NAME as {$as};";
-
-            $new_file = file_get_contents(base_path($file_path));
-
-            if (str_contains($new_file, $name_space)){
-                continue;
-            }
-
-            $replace_string = "<?php" . PHP_EOL;
-            $replace_string .= $name_space;
-
-            $new_file_contents = str_replace("<?php", $replace_string, $new_file);
-
-            file_put_contents(base_path($file_path), $new_file_contents);
-        }
-
-        $file = fopen(base_path($file_path), 'a+');
-        fwrite($file, PHP_EOL . $routesString);
-        fclose($file);
-    }
-
-    public function return_as(string $COMPONENT_NAME): string
-    {
-        $plural = $this->isPlural($COMPONENT_NAME);
-        if ($plural) {
-            $as = "{$COMPONENT_NAME}{$this->pluralize($this->modelName)}";
-        } else {
-            $as = "{$COMPONENT_NAME}{$this->singularize($this->modelName)}";
-        }
-
-        return $as;
-    }
-
-    public function isPlural(string $COMPONENT_NAME): bool
-    {
-        return self::COMPONENT_NAMES_NAMESPACE[$this->str_to_lower($COMPONENT_NAME)] === 'plural';
     }
 }

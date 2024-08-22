@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 
 trait BaseTrait
 {
+    private array $passedOptions = [];
     protected array $namespacesToAdd = [];
 
     protected array $relationships = [];

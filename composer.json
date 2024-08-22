@@ -22,7 +22,7 @@
         }
     ],
     "require": {
-        "doctrine/inflector": "^2.0"
+        "doctrine/inflector": "^2.x"
     },
     "require-dev": {
         "pestphp/pest": "^2.0"

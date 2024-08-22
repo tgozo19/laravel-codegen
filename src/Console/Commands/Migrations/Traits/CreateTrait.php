@@ -2,17 +2,19 @@
 
 namespace Tgozo\LaravelCodegen\Console\Commands\Migrations\Traits;
 
+use Exception;
+use Tgozo\LaravelCodegen\Console\BaseTrait;
 use Tgozo\LaravelCodegen\Controllers\Livewire;
 use Tgozo\LaravelCodegen\Controllers\RelationShips;
 
 trait CreateTrait
 {
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function handle_create_command($name, $pattern = "create"): void
     {
-        if (($this->option('l') || $this->option('all'))  && !in_array('l', $this->option_exceptions)){
+        if ($this->checkOption('l',true)){
             Livewire::verifyInstallation(true);
         }
 
@@ -31,12 +33,12 @@ trait CreateTrait
 
         $modelName = $this->singularize($this->format_to_get_model_name($table_name));
 
-        if (($this->option('m') || $this->option('all')) && !in_array('m', $this->option_exceptions)){
+        if ($this->checkOption('m', true)){
             $created_model_name = $this->createModel($modelName, $fields, "standard", $table_name_to_be_passed);
             $this->info("Model [$created_model_name] created successfully.");
         }
 
-        if (($this->option('c') || $this->option('all'))  && !in_array('c', $this->option_exceptions)){
+        if ($this->checkOption('c', true)){
             $controllerName = $this->controller_name_from_model($modelName);
             $created_controller_name = $this->createController($controllerName, $modelName, $fields, "standard");
             $this->info("Controller [$created_controller_name] created successfully.");
@@ -44,24 +46,24 @@ trait CreateTrait
             $this->info("4 views created in resources/views/{$this->str_to_lower($modelName)} directory.");
         }
 
-        if (($this->option('l') || $this->option('all'))  && !in_array('l', $this->option_exceptions)){
+        if ($this->checkOption('l', true)){
             $livewire = new Livewire($this, $modelName, $fields);
             $livewire->createComponents();
         }
 
-        if (($this->option('s') || $this->option('all'))  && !in_array('s', $this->option_exceptions)){
+        if ($this->checkOption('s', true)){
             $this->create_seeder($modelName, $fields);
         }
 
-        if (($this->option('f') || $this->option('all'))  && !in_array('f', $this->option_exceptions)){
+        if ($this->checkOption('f', true)){
             $this->create_factory($modelName, $fields);
         }
 
-        if (($this->option('p') || $this->option('all'))  && !in_array('p', $this->option_exceptions)){
+        if ($this->checkOption('p', true)){
             $this->create_tests($modelName, $fields);
         }
 
-        if ($this->option('relates')  && !in_array('relates', $this->option_exceptions)){
+        if ($this->checkOption('relates', true)){
             $relationships = new RelationShips($this, $modelName, $this->relationships);
             $relationships->generateRelationships();
         }

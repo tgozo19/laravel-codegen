@@ -614,4 +614,27 @@ class MigrationBaseGenerator extends Command
 
         $this->option_exceptions = $exceptions;
     }
+
+    public function extractOptions(): void
+    {
+        $this->info("lllll");
+        foreach ($this->options() as $option => $passed) {
+            if (!$passed) continue;
+            $this->passedOptions[] = $option;
+        }
+
+        foreach ($this->passedOptions as $passedOption) {
+            $this->info("Passed $passedOption");
+        }
+    }
+
+    public function checkOption($option, $checkAll = false): bool
+    {
+        if ($checkAll){
+            if (in_array('all', $this->passedOptions)) return true;
+        }
+        return in_array($option, $this->passedOptions) && !in_array($option, $this->option_exceptions);
+//        return ($this->option($option) || $this->option('all')) && !in_array($option, $this->option_exceptions);
+    }
+
 }
