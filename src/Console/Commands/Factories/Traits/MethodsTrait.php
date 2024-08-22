@@ -53,16 +53,6 @@ trait MethodsTrait
         return $str;
     }
 
-    public function findClosingBrace($str, $pos) {
-        if ($str[$pos] == '{') {
-            return $this->findClosingBrace($str, $this->findClosingBrace($str, $pos + 1) + 1);
-        } elseif ($str[$pos] == '}') {
-            return $pos;
-        } else {
-            return $this->findClosingBrace($str, $pos + 1);
-        }
-    }
-
     public function register_factory($modelName): void
     {
         $factory_name = $modelName . "Factory";

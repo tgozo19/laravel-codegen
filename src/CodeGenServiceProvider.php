@@ -13,6 +13,16 @@ class CodeGenServiceProvider extends ServiceProvider
         Migration::class,
     ];
 
+    public function boot(): void
+    {
+        $this->mergeConfigFrom(__DIR__.'/../config/laravelcodegen.php', 'laravelcodegen');
+
+        $this->publishes([
+            __DIR__.'/../config/laravelcodegen.php' => config_path('laravelcodegen.php'),
+        ]);
+    }
+
+
     public function register(): void
     {
         $this->commands($this->commands);

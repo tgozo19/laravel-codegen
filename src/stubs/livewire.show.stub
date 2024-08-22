@@ -1,0 +1,45 @@
+<?php
+
+namespace App\Livewire\{{ modelName }};
+
+use App\Models\{{ modelName }};
+use Illuminate\Http\RedirectResponse;
+use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
+use Livewire\Component;
+
+class Show extends Component
+{
+    public ?string $id = null;
+
+    public function mount($id): void
+    {
+        $this->id = $id;
+    }
+
+    public function delete(): ?RedirectResponse
+    {
+        $this->resetErrorBag();
+        ${{ dataVariable }} = {{ modelName }}::whereId($this->id)->first();
+        if (!${{ dataVariable }}){
+            session()->flash('success', '{{ title }} was already deleted');
+            return to_route('view-{{ viewRoute }}');
+        }
+
+        if (!${{ dataVariable }}->delete()){
+            $this->addError('error', 'Failed to delete {{ title }}. Please Try Again');
+            return null;
+        }
+
+        session()->flash('success', '{{ title }} deleted successfully');
+        return to_route('view-{{ viewRoute }}');
+    }
+
+    #[Title('Show {{ title }}')]
+    #[Layout('layout.base')]
+    public function render()
+    {
+        ${{ dataVariable }} = {{ modelName }}::findOrFail($this->id);
+        return view('livewire.{{ directoryName }}.show', compact('{{ dataVariable }}'));
+    }
+}

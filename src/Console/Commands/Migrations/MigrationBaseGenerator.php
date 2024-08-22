@@ -2,6 +2,7 @@
 
 namespace Tgozo\LaravelCodegen\Console\Commands\Migrations;
 
+use Exception;
 use Illuminate\Console\Command;
 use Tgozo\LaravelCodegen\Console\BaseTrait;
 use Tgozo\LaravelCodegen\Console\Commands\Migrations\Traits\AttributesTrait;
@@ -9,10 +10,32 @@ use Tgozo\LaravelCodegen\Console\Commands\Migrations\Traits\MethodsTrait;
 use Tgozo\LaravelCodegen\Console\Commands\Models\Traits\MethodsTrait as ModelsMethodsTrait;
 use Tgozo\LaravelCodegen\Console\Commands\Controllers\Traits\MethodsTrait as ControllersMethodsTrait;
 use Tgozo\LaravelCodegen\Console\Commands\Pest\Traits\MethodsTrait as PestMethodsTrait;
+use Tgozo\LaravelCodegen\Concerns\Relationship as RelationshipConcern;
 
 class MigrationBaseGenerator extends Command
 {
-    use BaseTrait, AttributesTrait, MethodsTrait, ModelsMethodsTrait, ControllersMethodsTrait, PestMethodsTrait;
+    use BaseTrait, AttributesTrait, MethodsTrait, ModelsMethodsTrait, ControllersMethodsTrait, PestMethodsTrait, RelationshipConcern;
+
+    public function check_migration_existence($name): void
+    {
+        if ($this->option('force')){
+            return;
+        }
+        try {
+            $migrations_directory = base_path('database/migrations');
+            $files = scandir($migrations_directory);
+            if ($files === false){
+                exit;
+            }
+            foreach ($files as $file){
+                if (str_contains($file, $name)){
+                    $this->error("A similar migration already exists: $file");
+                    $this->info("\nTo forcefully create a similar migration, run the command with the --force flag");
+                    exit;
+                }
+            }
+        }catch (Exception $e){}
+    }
 
     public function getMigrationName()
     {
@@ -439,7 +462,7 @@ class MigrationBaseGenerator extends Command
                 $fieldsString .= '->nullable()';
             }
 
-            if (isset($field['default'])) {
+            if ($field['default'] !== '') {
                 if ($field['type'] !== 'boolean' && !in_array($field['type'], $this->numberTypes)) {
                     $field['default'] = "'" . $field['default'] . "'";
                     $fieldsString .= "->default({$field['default']})";
@@ -591,4 +614,27 @@ class MigrationBaseGenerator extends Command
 
         $this->option_exceptions = $exceptions;
     }
+
+    public function extractOptions(): void
+    {
+        $this->info("lllll");
+        foreach ($this->options() as $option => $passed) {
+            if (!$passed) continue;
+            $this->passedOptions[] = $option;
+        }
+
+        foreach ($this->passedOptions as $passedOption) {
+            $this->info("Passed $passedOption");
+        }
+    }
+
+    public function checkOption($option, $checkAll = false): bool
+    {
+        if ($checkAll){
+            if (in_array('all', $this->passedOptions)) return true;
+        }
+        return in_array($option, $this->passedOptions) && !in_array($option, $this->option_exceptions);
+//        return ($this->option($option) || $this->option('all')) && !in_array($option, $this->option_exceptions);
+    }
+
 }

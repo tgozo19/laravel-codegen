@@ -9,6 +9,7 @@ use Tgozo\LaravelCodegen\Console\Commands\Migrations\Traits\CreateTrait;
 use Tgozo\LaravelCodegen\Console\Commands\Seeders\Traits\MethodsTrait as SeederMethodsTrait;
 use Tgozo\LaravelCodegen\Console\Commands\Factories\Traits\MethodsTrait as FactoryMethodsTrait;
 use Tgozo\LaravelCodegen\Console\Commands\Models\Traits\AttributesTrait as ModelAttributesTraits;
+use Tgozo\LaravelCodegen\Controllers\Livewire;
 
 class Migration extends MigrationBaseGenerator
 {
@@ -18,7 +19,7 @@ class Migration extends MigrationBaseGenerator
      *
      * @var string
      */
-     protected $signature = 'make:codegen-migration {name?} {--m|m} {--c|c} {--b|b} {--r|r} {--s|s} {--f|f} {--p|p} {--except=} {--all|all} {--force|force}';
+     protected $signature = 'make:codegen-migration {name?} {--m|m} {--c|c} {--b|b} {--r|r} {--s|s} {--f|f} {--p|p} {--l|l} {--except=} {--relates=} {--all|all} {--force|force}';
 
     /**
      * The console command description.
@@ -44,12 +45,15 @@ class Migration extends MigrationBaseGenerator
      */
     public function handle(): void
     {
+        $this->extractOptions();
+
         $this->validate_except();
 
-        $except = $this->option('except');
-        info($except);
+        $this->validateRelations();
 
         $name = $this->getMigrationName();
+
+        $this->check_migration_existence($name);
 
         $pattern = $this->getPattern($name);
 
