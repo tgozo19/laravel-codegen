@@ -6,11 +6,13 @@ use Doctrine\Inflector\Inflector;
 use Doctrine\Inflector\InflectorFactory;
 use Illuminate\Support\ServiceProvider;
 use Tgozo\LaravelCodegen\Console\Commands\Migrations\Migration;
+use Tgozo\LaravelCodegen\Console\Commands\ReverseEngineer\ReverseEngineerCommand;
 
 class CodeGenServiceProvider extends ServiceProvider
 {
     protected array $commands = [
         Migration::class,
+        ReverseEngineerCommand::class,
     ];
 
     public function boot(): void
