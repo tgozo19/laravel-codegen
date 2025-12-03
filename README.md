@@ -415,6 +415,56 @@ composer install
 vendor/bin/pest
 ```
 
+## 🔗 Migration Management
+
+### 📦 Combine Migrations
+
+Keep your migrations clean by combining modifier migrations into their original create table migrations!
+
+```bash
+# Combine all migrations (default - simplest!)
+php artisan codegen:combine-migrations
+
+# Combine migrations for a specific table
+php artisan codegen:combine-migrations --table=users
+
+# Preview changes without applying them (recommended first!)
+php artisan codegen:combine-migrations --dry-run
+```
+
+**What it does:**
+
+This command intelligently identifies and merges modifier migrations (like `add_address_to_users_table`) back into their original create table migrations (like `create_users_table`).
+
+**Supported Operations:**
+
+- ✅ **Add Columns**: Columns from `add_*_to_{table}_table` migrations are added to the create migration
+- ✅ **Drop Columns**: Columns marked for dropping in `drop_*_from_{table}_table` are removed from the create migration
+- ✅ **Rename Columns**: Column renames from `rename_*_in_{table}_table` are applied directly in the create migration
+- ✅ **Modify Table**: General table modifications are parsed and applied appropriately
+
+**Example:**
+
+Before:
+```
+2024_01_01_000000_create_users_table.php
+2024_01_02_000000_add_address_to_users_table.php
+2024_01_03_000000_add_phone_to_users_table.php
+2024_01_04_000000_drop_legacy_from_users_table.php
+```
+
+After running `php artisan codegen:combine-migrations --table=users`:
+```
+2024_01_01_000000_create_users_table.php  (now includes address, phone, and legacy removed)
+```
+
+**Benefits:**
+
+- 🧹 **Cleaner Migration History**: Fewer files to manage
+- 📚 **Better Readability**: Complete table structure in one file
+- ⚡ **Faster Migrations**: Single migration instead of multiple sequential ones
+- 🎯 **Easier Testing**: Fresh database setup is simpler with combined migrations
+
 ## 📈 Roadmap
 
 - [ ] **GraphQL Integration** - Generate GraphQL schemas and resolvers
