@@ -18,6 +18,7 @@ class ReverseEngineerCommand extends Command
                             {--migrations : Generate migrations from existing tables}
                             {--all : Generate both models and migrations}
                             {--force : Overwrite existing files}
+                            {--dry-run : Simulate reverse engineering without writing files}
                             {--connection= : Database connection to use}';
 
     protected $description = 'Reverse engineer existing database tables to generate models and/or migrations';
@@ -103,7 +104,33 @@ class ReverseEngineerCommand extends Command
 
     protected function getTableSchema(string $table): array
     {
-        $columns = Schema::connection($this->connection)->getColumnListing($table);
+        $schemaBuilder = Schema::connection($this->connection);
+
+        if (method_exists($schemaBuilder, 'getColumns')) {
+            try {
+                $nativeColumns = $schemaBuilder->getColumns($table);
+                $columnDetails = [];
+                foreach ($nativeColumns as $col) {
+                    $name = $col['name'];
+                    $typeName = strtolower($col['type_name'] ?? $col['type'] ?? 'string');
+                    $columnDetails[$name] = [
+                        'type' => $this->mapInformationSchemaType($typeName),
+                        'length' => $col['length'] ?? null,
+                        'precision' => $col['precision'] ?? null,
+                        'scale' => $col['scale'] ?? null,
+                        'nullable' => $col['nullable'] ?? true,
+                        'default' => $col['default'] ?? null,
+                        'autoIncrement' => $col['auto_increment'] ?? false,
+                        'unsigned' => $col['unsigned'] ?? false,
+                    ];
+                }
+                return $columnDetails;
+            } catch (\Throwable $e) {
+                // Fall back to manual driver queries if native call fails
+            }
+        }
+
+        $columns = $schemaBuilder->getColumnListing($table);
         $columnDetails = [];
 
         foreach ($columns as $column) {
@@ -339,6 +366,31 @@ class ReverseEngineerCommand extends Command
 
     protected function getForeignKeys(string $table): array
     {
+        $schemaBuilder = Schema::connection($this->connection);
+
+        if (method_exists($schemaBuilder, 'getForeignKeys')) {
+            try {
+                $nativeFKs = $schemaBuilder->getForeignKeys($table);
+                $foreignKeys = [];
+                foreach ($nativeFKs as $fk) {
+                    $localColumn = is_array($fk['columns'] ?? null) ? ($fk['columns'][0] ?? null) : ($fk['columns'] ?? null);
+                    $foreignTable = $fk['foreign_table'] ?? null;
+                    $foreignColumn = is_array($fk['foreign_columns'] ?? null) ? ($fk['foreign_columns'][0] ?? null) : ($fk['foreign_columns'] ?? null);
+                    if ($localColumn && $foreignTable && $foreignColumn) {
+                        $foreignKeys[] = [
+                            'local_column' => $localColumn,
+                            'foreign_table' => $foreignTable,
+                            'foreign_column' => $foreignColumn,
+                            'constraint_name' => $fk['name'] ?? "fk_{$table}_{$localColumn}"
+                        ];
+                    }
+                }
+                return $foreignKeys;
+            } catch (\Throwable $e) {
+                // Fall back to driver-specific queries if native call fails
+            }
+        }
+
         $foreignKeys = [];
         
         try {
@@ -491,19 +543,28 @@ class ReverseEngineerCommand extends Command
         
         // Determine if timestamps exist
         $hasTimestamps = isset($columns['created_at']) && isset($columns['updated_at']);
+
+        // Determine if soft deletes exist
+        $hasSoftDeletes = isset($columns['deleted_at']);
+        $softDeletesImport = $hasSoftDeletes ? "\nuse Illuminate\Database\Eloquent\SoftDeletes;" : '';
+        $softDeletesTrait = $hasSoftDeletes ? ", SoftDeletes" : '';
         
         return str_replace([
             '{{modelName}}',
             '{{tableName}}',
             '{{casts}}',
             '{{relationships}}',
-            '{{timestamps}}'
+            '{{timestamps}}',
+            '{{softDeletesImport}}',
+            '{{softDeletesTrait}}'
         ], [
             $modelName,
             $table,
             $casts,
             $relationships,
-            $hasTimestamps ? 'true' : 'false'
+            $hasTimestamps ? 'true' : 'false',
+            $softDeletesImport,
+            $softDeletesTrait
         ], $stub);
     }
 

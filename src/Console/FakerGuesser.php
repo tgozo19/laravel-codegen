@@ -16,9 +16,9 @@ class FakerGuesser
         'title' => 'fake()->unique()->title',
         'subject' => 'fake()->unique()->text(20)',
         'message' => 'fake()->unique()->paragraph',
-        'cost' => 'fake()->unique()->randomNumber(4)',
+        'cost' => 'fake()->unique()->randomFloat(2, 10, 500)',
         'value' => 'fake()->unique()->randomNumber(4)',
-        'price' => 'fake()->unique()->randomNumber(4)',
+        'price' => 'fake()->unique()->randomFloat(2, 10, 500)',
         'discount' => 'fake()->unique()->randomNumber(4)',
         'qty' => 'fake()->unique()->randomNumber()',
         'quantity' => 'fake()->unique()->randomNumber()',
@@ -73,16 +73,48 @@ class FakerGuesser
             return '\Str::random(10)';
         }
 
-	    if (str($column_name)->contains('phone_number')) {
-            return 'fake()->unique()->phoneNumber';
+        if (str($column_name)->contains('phone') || str($column_name)->contains('mobile') || str($column_name)->contains('fax')) {
+            return 'fake()->phoneNumber';
+        }
+
+        if (str($column_name)->contains('image') || str($column_name)->contains('avatar') || str($column_name)->contains('photo') || str($column_name)->contains('picture') || str($column_name)->contains('thumbnail')) {
+            return 'fake()->imageUrl()';
+        }
+
+        if (str($column_name)->contains('url') || str($column_name)->contains('website') || str($column_name)->contains('link')) {
+            return 'fake()->url';
+        }
+
+        if (str($column_name)->contains('slug')) {
+            return 'fake()->slug';
+        }
+
+        if ($column_name === 'ip' || str($column_name)->contains('ip_address')) {
+            return 'fake()->ipv4';
+        }
+
+        if ($column_name === 'latitude' || $column_name === 'lat') {
+            return 'fake()->latitude';
+        }
+
+        if ($column_name === 'longitude' || $column_name === 'lng' || $column_name === 'lon') {
+            return 'fake()->longitude';
+        }
+
+        if (str($column_name)->startsWith('is_') || str($column_name)->startsWith('has_') || str($column_name)->startsWith('can_') || str($column_name)->startsWith('should_') || $column_type === 'boolean') {
+            return 'fake()->boolean()';
         }
 
         if (str($column_name)->endsWith('_id')) {
             return 'fake()->unique()->randomNumber()';
         }
 
-        if ($column_type === 'integer') {
+        if ($column_type === 'integer' || $column_type === 'bigInteger') {
             return 'fake()->randomNumber()';
+        }
+
+        if ($column_type === 'decimal' || $column_type === 'float' || $column_type === 'double') {
+            return 'fake()->randomFloat(2, 10, 500)';
         }
 
         return 'fake()->text';

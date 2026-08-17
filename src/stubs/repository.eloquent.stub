@@ -1,0 +1,41 @@
+<?php
+
+namespace {{ namespace }};
+
+use {{ namespacedInterface }};
+use {{ namespacedModel }};
+use Illuminate\Database\Eloquent\Collection;
+
+class {{ class }} implements {{ interfaceName }}
+{
+    public function __construct(protected {{ model }} $model)
+    {
+    }
+
+    public function all(): Collection
+    {
+        return $this->model->all();
+    }
+
+    public function find(int|string $id): ?{{ model }}
+    {
+        return $this->model->find($id);
+    }
+
+    public function create(array $data): {{ model }}
+    {
+        return $this->model->create($data);
+    }
+
+    public function update(int|string $id, array $data): bool
+    {
+        $record = $this->find($id);
+        return $record ? $record->update($data) : false;
+    }
+
+    public function delete(int|string $id): bool
+    {
+        $record = $this->find($id);
+        return $record ? (bool) $record->delete() : false;
+    }
+}

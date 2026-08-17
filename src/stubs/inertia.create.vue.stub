@@ -1,0 +1,23 @@
+<script setup>
+import { useForm } from '@inertiajs/vue3';
+
+const form = useForm({
+{{ fields }}
+});
+
+const submit = () => {
+    form.post(route('{{ modelRoute }}.store'));
+};
+</script>
+
+<template>
+    <div class="container mx-auto p-6 max-w-lg">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">Create {{ modelSingular }}</h1>
+        <form @submit.prevent="submit" class="space-y-4 bg-white p-6 rounded-md shadow">
+{{ formElements }}
+            <button type="submit" :disabled="form.processing" class="w-full py-2 px-4 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                Save {{ modelSingular }}
+            </button>
+        </form>
+    </div>
+</template>

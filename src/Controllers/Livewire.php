@@ -63,7 +63,7 @@ class Livewire
             foreach ($this->pretendMessages['failures'] as $failure){
                 $this->package->error("Livewire Component: {$this->modelName}/{$failure} already exists");
             }
-            exit;
+            return;
         }
 
         foreach (self::COMPONENT_NAMES as $COMPONENT_NAME) {

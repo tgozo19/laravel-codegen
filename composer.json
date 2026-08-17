@@ -15,6 +15,11 @@
             "Tgozo\\LaravelCodegen\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Tgozo\\LaravelCodegen\\Tests\\": "tests/"
+        }
+    },
     "authors": [
         {
             "name": "Takudzwa Gozo",
@@ -22,10 +27,12 @@
         }
     ],
     "require": {
-        "doctrine/inflector": "^2.0"
+        "doctrine/inflector": "^2.0",
+        "laravel/prompts": "^0.1"
     },
     "require-dev": {
-        "pestphp/pest": "^2.0"
+        "pestphp/pest": "^2.0",
+        "orchestra/testbench": "^8.0"
     },
     "extra": {
         "laravel": {

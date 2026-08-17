@@ -6,10 +6,10 @@ use Tgozo\LaravelCodegen\Controllers\RelationShips;
 
 trait Relationship
 {
-    public function validateRelations(): void
+    public function validateRelations(): bool
     {
         $relates = $this->option('relates');
-        if (empty($relates)) return;
+        if (empty($relates)) return true;
 
         $relationships = explode(',', $relates);
 
@@ -19,7 +19,7 @@ trait Relationship
             $relationshipName = $this->str_to_lower($passedRelationshipName);
             if (!array_key_exists($relationshipName, RelationShips::RELATIONSHIP_MAPPER)){
                 $this->error("The relation {$passedRelationshipName} is not supported");
-                exit;
+                return false;
             }
             if (count($arr) < 2) continue;
 
@@ -31,13 +31,13 @@ trait Relationship
             $minimumArguments = RelationShips::ARGUMENTS_REQUIRED[$relationshipName]['min'];
             if ($argumentsCount < $minimumArguments){
                 $this->error("The relation {$passedRelationshipName} expects a minimum of {$minimumArguments} argument(s) not {$argumentsCount}");
-                exit;
+                return false;
             }
 
             $maximumArguments = RelationShips::ARGUMENTS_REQUIRED[$relationshipName]['max'];
             if (count($arguments) > $maximumArguments){
                 $this->error("The relation {$passedRelationshipName} expects a maximum of {$maximumArguments} argument(s) not {$argumentsCount}");
-                exit;
+                return false;
             }
 
             $this->relationships[] = [
@@ -50,5 +50,7 @@ trait Relationship
                 }, ARRAY_FILTER_USE_BOTH),
             ];
         }
+
+        return true;
     }
 }

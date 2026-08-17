@@ -19,7 +19,7 @@ class Migration extends MigrationBaseGenerator
      *
      * @var string
      */
-     protected $signature = 'make:codegen-migration {name?} {--m|m} {--c|c} {--b|b} {--r|r} {--s|s} {--f|f} {--p|p} {--l|l} {--except=} {--relates=} {--all|all} {--force|force}';
+     protected $signature = 'make:codegen-migration {name?} {--m|m} {--c|c} {--b|b} {--r|r} {--s|s} {--f|f} {--p|p} {--l|l} {--api} {--requests} {--enum=} {--inertia} {--react} {--repository} {--types} {--events} {--soft-deletes-actions} {--dry-run} {--domain=} {--except=} {--relates=} {--all|all} {--force|force}';
 
     /**
      * The console command description.
@@ -47,21 +47,32 @@ class Migration extends MigrationBaseGenerator
     {
         $this->extractOptions();
 
-        $this->validate_except();
+        if (!$this->validate_except()) {
+            return;
+        }
 
-        $this->validateRelations();
+        if ($this->validateRelations() === false) {
+            return;
+        }
 
         $name = $this->getMigrationName();
+        if (empty($name)) {
+            return;
+        }
 
-        $this->check_migration_existence($name);
+        if ($this->check_migration_existence($name)) {
+            return;
+        }
 
         $pattern = $this->getPattern($name);
 
-        $this->perform_checks("migration_route", $pattern, $name);
+        if ($this->perform_checks("migration_route", $pattern, $name)) {
+            return;
+        }
 
         if (!method_exists($this, "handle_{$pattern}command")){
             $this->info("Command for pattern {$pattern} doesn't exist");
-            exit;
+            return;
         }
         $this->{"handle_{$pattern}command"}($name, $pattern);
     }

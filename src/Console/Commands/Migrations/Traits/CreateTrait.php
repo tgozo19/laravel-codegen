@@ -67,5 +67,48 @@ trait CreateTrait
             $relationships = new RelationShips($this, $modelName, $this->relationships);
             $relationships->generateRelationships();
         }
+
+        if ($this->hasOption('requests') && $this->option('requests')) {
+            $domain = $this->hasOption('domain') ? $this->option('domain') : null;
+            $isDryRun = $this->hasOption('dry-run') && $this->option('dry-run');
+            $this->generateFormRequests($modelName, $fields, $domain, $isDryRun);
+        }
+
+        if ($this->hasOption('enum') && $this->option('enum')) {
+            $enumString = $this->option('enum');
+            $enumParts = explode(':', $enumString);
+            $enumName = $enumParts[0];
+            $cases = isset($enumParts[1]) ? explode(',', $enumParts[1]) : ['draft', 'published', 'archived'];
+            $domain = $this->hasOption('domain') ? $this->option('domain') : null;
+            $isDryRun = $this->hasOption('dry-run') && $this->option('dry-run');
+            $this->generateEnum($enumName, $cases, $domain, $isDryRun);
+        }
+
+        if ($this->hasOption('inertia') && $this->option('inertia')) {
+            $isDryRun = $this->hasOption('dry-run') && $this->option('dry-run');
+            $this->generateInertiaComponents($modelName, $fields, $isDryRun);
+        }
+
+        if ($this->hasOption('types') && $this->option('types')) {
+            $isDryRun = $this->hasOption('dry-run') && $this->option('dry-run');
+            $this->generateTypeScriptDefinition($modelName, $fields, $isDryRun);
+        }
+
+        if ($this->hasOption('events') && $this->option('events')) {
+            $domain = $this->hasOption('domain') ? $this->option('domain') : null;
+            $isDryRun = $this->hasOption('dry-run') && $this->option('dry-run');
+            $this->generateDomainEvents($modelName, $domain, $isDryRun);
+        }
+
+        if ($this->hasOption('react') && $this->option('react')) {
+            $isDryRun = $this->hasOption('dry-run') && $this->option('dry-run');
+            $this->generateInertiaReactComponents($modelName, $fields, $isDryRun);
+        }
+
+        if ($this->hasOption('repository') && $this->option('repository')) {
+            $domain = $this->hasOption('domain') ? $this->option('domain') : null;
+            $isDryRun = $this->hasOption('dry-run') && $this->option('dry-run');
+            $this->generateRepositoryPattern($modelName, $domain, $isDryRun);
+        }
     }
 }

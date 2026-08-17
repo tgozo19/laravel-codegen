@@ -1,0 +1,19 @@
+<?php
+
+namespace {{ namespace }};
+
+use {{ namespacedModel }};
+use Illuminate\Database\Eloquent\Collection;
+
+interface {{ class }}
+{
+    public function all(): Collection;
+
+    public function find(int|string $id): ?{{ model }};
+
+    public function create(array $data): {{ model }};
+
+    public function update(int|string $id, array $data): bool;
+
+    public function delete(int|string $id): bool;
+}

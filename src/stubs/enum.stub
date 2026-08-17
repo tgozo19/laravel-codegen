@@ -1,0 +1,15 @@
+<?php
+
+namespace {{ namespace }};
+
+enum {{ class }}: string
+{
+{{ cases }}
+
+    public function label(): string
+    {
+        return match ($this) {
+{{ labels }}
+        };
+    }
+}

@@ -1,0 +1,59 @@
+import React from 'react';
+import { Link, Head } from '@inertiajs/react';
+
+interface {{ modelSingular }} {
+    id: number;
+    [key: string]: any;
+}
+
+interface Props {
+    items: {{ modelSingular }}[];
+}
+
+export default function Index({ items }: Props) {
+    return (
+        <div className="container mx-auto p-6">
+            <Head title="{{ modelSingular }} List" />
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-2xl font-bold text-gray-800">{{ modelSingular }} List</h1>
+                <Link
+                    href={`/{{ modelRoute }}/create`}
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                    Create {{ modelSingular }}
+                </Link>
+            </div>
+
+            <div className="bg-white shadow rounded-lg overflow-hidden">
+                <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                        <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                        {items && items.length > 0 ? (
+                            items.map((item) => (
+                                <tr key={item.id}>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.id}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <Link href={`/{{ modelRoute }}/${item.id}`} className="text-blue-600 hover:text-blue-900">
+                                            View
+                                        </Link>
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan={2} className="px-6 py-4 text-center text-sm text-gray-500">
+                                    No {{ modelSingular }} items found.
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+}

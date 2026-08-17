@@ -5,6 +5,7 @@ namespace Tgozo\LaravelCodegen\Console;
 use Doctrine\Inflector\Inflector;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 
 trait BaseTrait
 {
@@ -25,24 +26,23 @@ trait BaseTrait
             $name = substr($name, 0, $pos);
         }
 
+        $custom_stub = base_path("resources/stubs/vendor/laravelcodegen/{$name}.stub");
+        if (file_exists($custom_stub)) {
+            return file_get_contents($custom_stub);
+        }
+
         $dir_name = dirname(__DIR__, 1) . "/stubs/{$name}.stub";
         return file_get_contents($dir_name);
     }
 
     public function snakeToCamelPlural($string): string
     {
-        $string = str_replace('_', ' ', $string);
-        $string = ucwords($string);
-        $string = str_replace(' ', '', $string);
-        return app(Inflector::class)->pluralize($string);
+        return Str::plural(Str::camel($string));
     }
 
     public function snakeToCamelSingular($string): string
     {
-        $string = str_replace('_', ' ', $string);
-        $string = ucwords($string);
-        $string = str_replace(' ', '', $string);
-        return app(Inflector::class)->singularize($string);
+        return Str::singular(Str::camel($string));
     }
 
     public function formatFile($file): void
@@ -54,22 +54,22 @@ trait BaseTrait
 
     public function singularize($str): string
     {
-        return app(Inflector::class)->singularize($str);
+        return Str::singular($str);
     }
 
     public function pluralize($str): string
     {
-        return app(Inflector::class)->pluralize($str);
+        return Str::plural($str);
     }
 
     public function str_to_lower($str): string
     {
-        return strtolower($str);
+        return Str::lower($str);
     }
 
     public function str_to_upper($str): string
     {
-        return strtoupper($str);
+        return Str::upper($str);
     }
 
     public function intersectArrays($arr1, $arr2): array
@@ -84,7 +84,7 @@ trait BaseTrait
 
     public function format_to_get_model_name($str): string
     {
-        $str = $this->str_to_lower($str);
+        $str = Str::lower($str);
         // application_ attachments
         $str = implode('', array_map(function ($a){return $a;}, explode(' ', $str)));
         // application_attachments
@@ -97,10 +97,10 @@ trait BaseTrait
         return ucfirst($this->singularize($str));
     }
 
-    public function check_migration_route($pattern, $name): void
+    public function check_migration_route($pattern, $name): bool
     {
         if ($this->option('force')){
-            return;
+            return false;
         }
         $found = [];
         $model_name = $this->format_to_get_model_name($this->get_final_table_name($pattern, $name));
@@ -198,15 +198,19 @@ trait BaseTrait
             }
 
             $this->info("\nTo override the above existing files & routes, run the command with the --force flag");
-            exit;
+            return true;
         }
+
+        return false;
     }
 
-    public function perform_checks($route, $pattern, $name): void
+    public function perform_checks($route, $pattern, $name): bool
     {
         if ($route === "migration_route"){
-            $this->check_migration_route($pattern, $name);
+            return $this->check_migration_route($pattern, $name);
         }
+
+        return false;
     }
 
     public function get_faker_string($fields): string
@@ -409,4 +413,360 @@ trait BaseTrait
         return file_put_contents($file, $new_file_contents);
     }
 
+    public function promptText(string $label, string $placeholder = '', string $default = '', ?callable $validate = null): string
+    {
+        if (function_exists('Laravel\Prompts\text')) {
+            return \Laravel\Prompts\text(
+                label: $label,
+                placeholder: $placeholder,
+                default: $default,
+                validate: $validate
+            );
+        }
+
+        return $this->ask($label, $default) ?? '';
+    }
+
+    public function promptSelect(string $label, array $options, mixed $default = null): string
+    {
+        if (function_exists('Laravel\Prompts\select')) {
+            return \Laravel\Prompts\select(
+                label: $label,
+                options: $options,
+                default: $default
+            );
+        }
+
+        return $this->choice($label, $options, $default);
+    }
+
+    public function promptSuggest(string $label, array $options, string $placeholder = '', string $default = ''): string
+    {
+        if (function_exists('Laravel\Prompts\suggest')) {
+            return \Laravel\Prompts\suggest(
+                label: $label,
+                options: $options,
+                placeholder: $placeholder,
+                default: $default
+            );
+        }
+
+        return $this->choice($label, $options, $default);
+    }
+
+    public function promptConfirm(string $label, bool $default = true): bool
+    {
+        if (function_exists('Laravel\Prompts\confirm')) {
+            return \Laravel\Prompts\confirm(
+                label: $label,
+                default: $default
+            );
+        }
+
+        return $this->confirm($label, $default);
+    }
+
+    public function save_file(string $path, string $content, bool $isDryRun = false): void
+    {
+        if ($isDryRun) {
+            $this->comment("[DRY RUN] Would create/write to file: {$path}");
+            return;
+        }
+
+        $dir = dirname($path);
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        file_put_contents($path, $content);
+        $this->info("Created file: {$path}");
+    }
+
+    public function getDomainPath(string $subpath, ?string $domain = null): string
+    {
+        if (!empty($domain)) {
+            $domainName = Str::studly($domain);
+            return app_path("Domain/{$domainName}/{$subpath}");
+        }
+
+        return app_path($subpath);
+    }
+
+    public function inferValidationRules(array $fields): string
+    {
+        $rulesLines = [];
+        foreach ($fields as $field) {
+            $name = $field['name'] ?? null;
+            $type = strtolower($field['type'] ?? 'string');
+
+            if (!$name || in_array($name, ['id', 'created_at', 'updated_at', 'deleted_at'])) {
+                continue;
+            }
+
+            $rule = ['required'];
+            if (str_contains($type, 'nullable')) {
+                $rule = ['nullable'];
+            }
+
+            if (str_contains($type, 'int')) {
+                $rule[] = 'integer';
+            } elseif (str_contains($type, 'bool')) {
+                $rule[] = 'boolean';
+            } elseif (str_contains($type, 'date') || str_contains($type, 'time')) {
+                $rule[] = 'date';
+            } elseif (str_contains($type, 'json')) {
+                $rule[] = 'array';
+            } else {
+                $rule[] = 'string';
+                $rule[] = 'max:255';
+            }
+
+            if ($name === 'email') {
+                $rule[] = 'email';
+            }
+
+            $rulesLines[] = "            '{$name}' => '" . implode('|', $rule) . "',";
+        }
+
+        return implode("\n", $rulesLines);
+    }
+
+    public function generateFormRequests(string $modelName, array $fields, ?string $domain = null, bool $isDryRun = false): void
+    {
+        $modelStudly = Str::studly($modelName);
+        $rules = $this->inferValidationRules($fields);
+
+        $namespace = !empty($domain)
+            ? "App\\Domain\\" . Str::studly($domain) . "\\Requests"
+            : "App\\Http\\Requests";
+
+        $subDir = !empty($domain) ? "Domain/" . Str::studly($domain) . "/Requests" : "Http/Requests";
+
+        $stub = $this->load_stub('request');
+
+        foreach (['Store', 'Update'] as $action) {
+            $className = "{$action}{$modelStudly}Request";
+            $content = str_replace(
+                ['{{ namespace }}', '{{ class }}', '{{ rules }}'],
+                [$namespace, $className, $rules],
+                $stub
+            );
+
+            $filePath = app_path("{$subDir}/{$className}.php");
+            $this->save_file($filePath, $content, $isDryRun);
+        }
+    }
+
+    public function generateEnum(string $enumName, array $cases, ?string $domain = null, bool $isDryRun = false): void
+    {
+        $enumStudly = Str::studly($enumName);
+        $namespace = !empty($domain)
+            ? "App\\Domain\\" . Str::studly($domain) . "\\Enums"
+            : "App\\Enums";
+
+        $subDir = !empty($domain) ? "Domain/" . Str::studly($domain) . "/Enums" : "Enums";
+
+        $casesLines = [];
+        $labelsLines = [];
+        foreach ($cases as $case) {
+            $cleanCase = trim($case);
+            if (empty($cleanCase)) continue;
+            $caseName = Str::studly($cleanCase);
+            $casesLines[] = "    case {$caseName} = '{$cleanCase}';";
+            $labelsLines[] = "            self::{$caseName} => '" . Str::headline($cleanCase) . "',";
+        }
+
+        $stub = $this->load_stub('enum');
+        $content = str_replace(
+            ['{{ namespace }}', '{{ class }}', '{{ cases }}', '{{ labels }}'],
+            [$namespace, "{$enumStudly}Enum", implode("\n", $casesLines), implode("\n", $labelsLines)],
+            $stub
+        );
+
+        $filePath = app_path("{$subDir}/{$enumStudly}Enum.php");
+        $this->save_file($filePath, $content, $isDryRun);
+    }
+
+    public function generateInertiaComponents(string $modelName, array $fields, bool $isDryRun = false): void
+    {
+        $modelStudly = Str::studly($modelName);
+        $modelCamel = Str::camel($modelName);
+        $modelKebab = Str::kebab(Str::plural($modelName));
+
+        $indexStub = $this->load_stub('inertia.index.vue');
+        $indexContent = str_replace(
+            ['{{ modelPlural }}', '{{ modelSingular }}', '{{ modelRoute }}'],
+            [Str::plural($modelStudly), $modelStudly, $modelKebab],
+            $indexStub
+        );
+
+        $indexPath = resource_path("js/Pages/{$modelStudly}/Index.vue");
+        $this->save_file($indexPath, $indexContent, $isDryRun);
+
+        $createStub = $this->load_stub('inertia.create.vue');
+        $formFields = [];
+        $formElements = [];
+        foreach ($fields as $field) {
+            $name = $field['name'] ?? null;
+            if (!$name || in_array($name, ['id', 'created_at', 'updated_at', 'deleted_at'])) continue;
+            $formFields[] = "    {$name}: '',";
+            $label = Str::headline($name);
+            $formElements[] = "            <div>\n                <label class=\"block text-sm font-medium text-gray-700\">{$label}</label>\n                <input v-model=\"form.{$name}\" type=\"text\" class=\"mt-1 block w-full rounded-md border-gray-300 shadow-sm\" />\n            </div>";
+        }
+
+        $createContent = str_replace(
+            ['{{ modelSingular }}', '{{ modelRoute }}', '{{ fields }}', '{{ formElements }}'],
+            [$modelStudly, $modelKebab, implode("\n", $formFields), implode("\n", $formElements)],
+            $createStub
+        );
+
+        $createPath = resource_path("js/Pages/{$modelStudly}/Create.vue");
+        $this->save_file($createPath, $createContent, $isDryRun);
+    }
+
+    public function generateTypeScriptDefinition(string $modelName, array $fields, bool $isDryRun = false): void
+    {
+        $modelStudly = Str::studly($modelName);
+        $props = [];
+
+        foreach ($fields as $field) {
+            $name = $field['name'] ?? null;
+            if (!$name) continue;
+
+            $type = strtolower($field['type'] ?? 'string');
+            $tsType = 'string';
+
+            if (str_contains($type, 'int') || str_contains($type, 'decimal') || str_contains($type, 'float') || str_contains($type, 'double')) {
+                $tsType = 'number';
+            } elseif (str_contains($type, 'bool')) {
+                $tsType = 'boolean';
+            } elseif (str_contains($type, 'json') || str_contains($type, 'array')) {
+                $tsType = 'Record<string, any>';
+            }
+
+            $nullable = !empty($field['nullable']);
+            $propName = $nullable ? "{$name}?" : $name;
+            $propType = $nullable ? "{$tsType} | null" : $tsType;
+
+            $props[] = "    {$propName}: {$propType};";
+        }
+
+        $stub = $this->load_stub('typescript');
+        $content = str_replace(
+            ['{{ class }}', '{{ properties }}'],
+            [$modelStudly, implode("\n", $props)],
+            $stub
+        );
+
+        $path = resource_path("js/types/{$modelStudly}.d.ts");
+        $this->save_file($path, $content, $isDryRun);
+    }
+
+    public function generateDomainEvents(string $modelName, ?string $domain = null, bool $isDryRun = false): void
+    {
+        $modelStudly = Str::studly($modelName);
+        $modelVariable = Str::camel($modelName);
+
+        $eventNamespace = !empty($domain) ? "App\\Domain\\" . Str::studly($domain) . "\\Events" : "App\\Events";
+        $eventSubDir = !empty($domain) ? "Domain/" . Str::studly($domain) . "/Events" : "Events";
+        $modelNamespace = !empty($domain) ? "App\\Domain\\" . Str::studly($domain) . "\\Models\\{$modelStudly}" : "App\\Models\\{$modelStudly}";
+
+        $eventClassName = "{$modelStudly}Created";
+        $eventStub = $this->load_stub('event');
+        $eventContent = str_replace(
+            ['{{ namespace }}', '{{ class }}', '{{ namespacedModel }}', '{{ model }}', '{{ modelVariable }}'],
+            [$eventNamespace, $eventClassName, $modelNamespace, $modelStudly, $modelVariable],
+            $eventStub
+        );
+
+        $eventPath = app_path("{$eventSubDir}/{$eventClassName}.php");
+        $this->save_file($eventPath, $eventContent, $isDryRun);
+
+        $listenerNamespace = !empty($domain) ? "App\\Domain\\" . Str::studly($domain) . "\\Listeners" : "App\\Listeners";
+        $listenerSubDir = !empty($domain) ? "Domain/" . Str::studly($domain) . "/Listeners" : "Listeners";
+        $namespacedEvent = "{$eventNamespace}\\{$eventClassName}";
+
+        $listenerClassName = "Handle{$eventClassName}";
+        $listenerStub = $this->load_stub('listener');
+        $listenerContent = str_replace(
+            ['{{ namespace }}', '{{ class }}', '{{ namespacedEvent }}', '{{ event }}'],
+            [$listenerNamespace, $listenerClassName, $namespacedEvent, $eventClassName],
+            $listenerStub
+        );
+
+        $listenerPath = app_path("{$listenerSubDir}/{$listenerClassName}.php");
+        $this->save_file($listenerPath, $listenerContent, $isDryRun);
+    }
+
+    public function generateInertiaReactComponents(string $modelName, array $fields, bool $isDryRun = false): void
+    {
+        $modelStudly = Str::studly($modelName);
+        $modelKebab = Str::kebab(Str::plural($modelName));
+
+        $indexStub = $this->load_stub('inertia.index.react');
+        $indexContent = str_replace(
+            ['{{ modelSingular }}', '{{ modelRoute }}'],
+            [$modelStudly, $modelKebab],
+            $indexStub
+        );
+
+        $indexPath = resource_path("js/Pages/{$modelStudly}/Index.tsx");
+        $this->save_file($indexPath, $indexContent, $isDryRun);
+
+        $createStub = $this->load_stub('inertia.create.react');
+        $formFields = [];
+        $formElements = [];
+
+        foreach ($fields as $field) {
+            $name = $field['name'] ?? null;
+            if (!$name || in_array($name, ['id', 'created_at', 'updated_at', 'deleted_at'])) continue;
+            $formFields[] = "        {$name}: '',";
+            $label = Str::headline($name);
+            $formElements[] = "                <div>\n                    <label className=\"block text-sm font-medium text-gray-700\">{$label}</label>\n                    <input value={data.{$name}} onChange={e => setData('{$name}', e.target.value)} type=\"text\" className=\"mt-1 block w-full rounded-md border-gray-300 shadow-sm\" />\n                </div>";
+        }
+
+        $createContent = str_replace(
+            ['{{ modelSingular }}', '{{ modelRoute }}', '{{ fields }}', '{{ formElements }}'],
+            [$modelStudly, $modelKebab, implode("\n", $formFields), implode("\n", $formElements)],
+            $createStub
+        );
+
+        $createPath = resource_path("js/Pages/{$modelStudly}/Create.tsx");
+        $this->save_file($createPath, $createContent, $isDryRun);
+    }
+
+    public function generateRepositoryPattern(string $modelName, ?string $domain = null, bool $isDryRun = false): void
+    {
+        $modelStudly = Str::studly($modelName);
+        $interfaceNamespace = !empty($domain) ? "App\\Domain\\" . Str::studly($domain) . "\\Repositories\\Contracts" : "App\\Repositories\\Contracts";
+        $interfaceSubDir = !empty($domain) ? "Domain/" . Str::studly($domain) . "/Repositories/Contracts" : "Repositories/Contracts";
+        $modelNamespace = !empty($domain) ? "App\\Domain\\" . Str::studly($domain) . "\\Models\\{$modelStudly}" : "App\\Models\\{$modelStudly}";
+
+        $interfaceClassName = "{$modelStudly}RepositoryInterface";
+        $interfaceStub = $this->load_stub('repository.interface');
+        $interfaceContent = str_replace(
+            ['{{ namespace }}', '{{ class }}', '{{ namespacedModel }}', '{{ model }}'],
+            [$interfaceNamespace, $interfaceClassName, $modelNamespace, $modelStudly],
+            $interfaceStub
+        );
+
+        $interfacePath = app_path("{$interfaceSubDir}/{$interfaceClassName}.php");
+        $this->save_file($interfacePath, $interfaceContent, $isDryRun);
+
+        $eloquentNamespace = !empty($domain) ? "App\\Domain\\" . Str::studly($domain) . "\\Repositories\\Eloquent" : "App\\Repositories\\Eloquent";
+        $eloquentSubDir = !empty($domain) ? "Domain/" . Str::studly($domain) . "/Repositories/Eloquent" : "Repositories/Eloquent";
+        $namespacedInterface = "{$interfaceNamespace}\\{$interfaceClassName}";
+
+        $eloquentClassName = "{$modelStudly}Repository";
+        $eloquentStub = $this->load_stub('repository.eloquent');
+        $eloquentContent = str_replace(
+            ['{{ namespace }}', '{{ class }}', '{{ namespacedInterface }}', '{{ namespacedModel }}', '{{ interfaceName }}', '{{ model }}'],
+            [$eloquentNamespace, $eloquentClassName, $namespacedInterface, $modelNamespace, $interfaceClassName, $modelStudly],
+            $eloquentStub
+        );
+
+        $eloquentPath = app_path("{$eloquentSubDir}/{$eloquentClassName}.php");
+        $this->save_file($eloquentPath, $eloquentContent, $isDryRun);
+    }
 }
+

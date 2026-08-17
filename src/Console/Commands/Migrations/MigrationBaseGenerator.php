@@ -16,41 +16,45 @@ class MigrationBaseGenerator extends Command
 {
     use BaseTrait, AttributesTrait, MethodsTrait, ModelsMethodsTrait, ControllersMethodsTrait, PestMethodsTrait, RelationshipConcern;
 
-    public function check_migration_existence($name): void
+    public function check_migration_existence($name): bool
     {
         if ($this->option('force')){
-            return;
+            return false;
         }
         try {
             $migrations_directory = base_path('database/migrations');
             $files = scandir($migrations_directory);
             if ($files === false){
-                exit;
+                return false;
             }
             foreach ($files as $file){
                 if (str_contains($file, $name)){
                     $this->error("A similar migration already exists: $file");
                     $this->info("\nTo forcefully create a similar migration, run the command with the --force flag");
-                    exit;
+                    return true;
                 }
             }
         }catch (Exception $e){}
+
+        return false;
     }
 
-    public function getMigrationName()
+    public function getMigrationName(): ?string
     {
         $name = $this->argument('name');
 
         if (empty($name)) {
-            $name = $this->ask('What should the migration be named?');
+            $name = $this->promptText('What should the migration be named?', 'e.g. create_posts_table');
         }
 
         if (empty($name)) {
             $this->error('The migration name is required!');
-            exit;
+            return null;
         }
 
-        $this->followsPattern($name);
+        if (!$this->followsPattern($name)) {
+            return null;
+        }
 
         return $name;
     }
@@ -256,15 +260,28 @@ class MigrationBaseGenerator extends Command
         $field = [];
         if (empty($name)) {
             $this->error("You need to specify at least 1 field");
-            $field = $this->getFields($pattern);
-        }
+}
+
         return $field;
     }
 
-    public function getFields($pattern, $max_columns = null): array
+    public function getFields($pattern): array
     {
+        if ($this->hasOption('no-interaction') && $this->option('no-interaction')) {
+            return [
+                [
+                    'name' => 'title',
+                    'type' => 'string',
+                    'autoIncrement' => false,
+                    'nullable' => false,
+                    'unique' => false,
+                    'unsigned' => false,
+                    'default' => ''
+                ]
+            ];
+        }
 
-        $name = $this->ask('Specify a field name (or press <return> to stop adding fields)');
+        $name = $this->promptText('Specify a field name (or press <return> to stop adding fields)');
 
         $fields = $this->check_initial_field($name, $pattern);
 
@@ -273,7 +290,7 @@ class MigrationBaseGenerator extends Command
 
             while (!$this->checkFieldName($fields, $name)) {
                 $this->error("The {$name} field name is already used!");
-                $name = $this->ask('Specify a different field name (or press <return> to stop adding fields)');
+                $name = $this->promptText('Specify a different field name (or press <return> to stop adding fields)');
             }
 
             if (empty($name)){
@@ -282,17 +299,17 @@ class MigrationBaseGenerator extends Command
 
             $has_suggestions = array_key_exists($name, $this->common_columns);
             if ($has_suggestions){
-                $type = $this->choice('Select the type of the field?', [...$this->common_columns[$name], "Other"]);
+                $type = $this->promptSelect('Select the type of the field?', [...$this->common_columns[$name], "Other"]);
                 if ($type === 'Other'){
-                    $type = $this->ask('What is the type of the field?');
+                    $type = $this->promptSuggest('What is the type of the field?', $this->types);
                 }
             }else{
-                $type = $this->ask('What is the type of the field?');
+                $type = $this->promptSuggest('What is the type of the field?', $this->types);
             }
 
             while (!in_array($type, $this->types)) {
                 $this->error("The {$type} type is not valid!. Accepted types are: " . implode(', ', $this->types) . ".");
-                $type = $this->ask('What is the type of the field?');
+                $type = $this->promptSuggest('What is the type of the field?', $this->types);
             }
 
             $fields[$index] = [
@@ -327,7 +344,7 @@ class MigrationBaseGenerator extends Command
                 break;
             }
 
-            $name = $this->ask('Specify a field name (or press <return> to stop adding fields)');
+            $name = $this->promptText('Specify a field name (or press <return> to stop adding fields)');
             $index++;
         }
 
@@ -375,8 +392,9 @@ class MigrationBaseGenerator extends Command
         if ($has_ending_pattern) {
             $ends_with = $this->checkEnding($starts_with, $final_table_name);
             if ($ends_with === null) {
-                $this->error("A migration which starts with {$starts_with} declarative should end with " . implode(', ', $this->patterns['ending'][$starts_with]));
-                exit;
+                $msg = "A migration which starts with {$starts_with} declarative should end with " . implode(', ', $this->patterns['ending'][$starts_with]);
+                $this->error($msg);
+                throw new \InvalidArgumentException($msg);
             }
             $final_table_name = str_replace($ends_with, "", $final_table_name);
         }
@@ -387,8 +405,9 @@ class MigrationBaseGenerator extends Command
     {
         $final_table_name = $this->get_final_table_name($starts_with, $final_table_name);
         if (strlen($final_table_name) === 0){
-            $this->error("Please provide a valid table name");
-            exit;
+            $msg = "Please provide a valid table name";
+            $this->error($msg);
+            throw new \InvalidArgumentException($msg);
         }
 
         return $final_table_name;
@@ -398,8 +417,9 @@ class MigrationBaseGenerator extends Command
     {
         $final_table_name = $this->get_final_table_name($starts_with, $final_table_name);
         if (strlen($final_table_name) === 0){
-            $this->error("Please provide a valid table name");
-            exit;
+            $msg = "Please provide a valid table name";
+            $this->error($msg);
+            throw new \InvalidArgumentException($msg);
         }
 
         return $final_table_name;
@@ -409,28 +429,34 @@ class MigrationBaseGenerator extends Command
     {
         $final_table_name = $this->get_final_table_name($starts_with, $final_table_name);
         if (strlen($final_table_name) === 0){
-            $this->error("Please provide a valid table name");
-            exit;
+            $msg = "Please provide a valid table name";
+            $this->error($msg);
+            throw new \InvalidArgumentException($msg);
         }
 
         return $final_table_name;
     }
 
-    public function followsPattern($name): void
+    public function followsPattern($name): bool
     {
         $starts_with = $this->checkStart($name);
 
         if ($starts_with === null){
             $this->error("The migration name should start with any of the following declarative " . implode(', ', $this->patterns['start']));
-            exit;
+            return false;
         }
 
         if (!method_exists($this,$starts_with . "validate")){
             $this->error("Support for the declarative {$starts_with} is not yet implemented");
-            exit;
+            return false;
         }
 
-        $this->{$starts_with . "validate"}($starts_with, $name);
+        try {
+            $this->{$starts_with . "validate"}($starts_with, $name);
+            return true;
+        } catch (\InvalidArgumentException $e) {
+            return false;
+        }
     }
 
     public function getPattern($name)
@@ -478,11 +504,11 @@ class MigrationBaseGenerator extends Command
                 }
             }
 
-            if ($field['first']) {
+            if (!empty($field['first'])) {
                 $fieldsString .= '->first()';
             }
 
-            if ($field['useCurrentOnUpdate']) {
+            if (!empty($field['useCurrentOnUpdate'])) {
                 $fieldsString .= '->useCurrentOnUpdate()';
             }
 
@@ -498,11 +524,11 @@ class MigrationBaseGenerator extends Command
                 $fieldsString .= "->comment('{$field['comment']}')";
             }
 
-            if ($field['unsigned']) {
+            if (!empty($field['unsigned'])) {
                 $fieldsString .= '->unsigned()';
             }
 
-            if ($field['useCurrent']) {
+            if (!empty($field['useCurrent'])) {
                 $fieldsString .= '->useCurrent()';
             }
 
@@ -585,11 +611,11 @@ class MigrationBaseGenerator extends Command
 
     public function askForOptions(): array
     {
-        $options_response = $this->ask("Specify any other options. Options should be comma seperated eg. nullable,default:true ");
+        $options_response = $this->promptText("Specify any other options. Options should be comma seperated eg. nullable,default:true ");
         return explode(",", $options_response);
     }
 
-    public function validate_except(): void
+    public function validate_except(): bool
     {
         // the except option values should not contain space and should not be comma seperated
         // take each character and put it in an array as a single value
@@ -597,14 +623,14 @@ class MigrationBaseGenerator extends Command
         $exceptions = [];
 
         $except = $this->option('except');
-        if (empty($except)) return;
+        if (empty($except)) return true;
 
         $explode = explode(',', $except);
         foreach ($explode as $value) {
             $value = trim($value);
             if (str_contains($value, ' ')){
                 $this->error("The except option values should not contain space");
-                exit;
+                return false;
             }
 
             for ($i = 0; $i < strlen($value); $i++) {
@@ -613,6 +639,7 @@ class MigrationBaseGenerator extends Command
         }
 
         $this->option_exceptions = $exceptions;
+        return true;
     }
 
     public function extractOptions(): void

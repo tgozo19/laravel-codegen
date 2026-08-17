@@ -206,6 +206,22 @@ trait MethodsTrait
         fclose($file);
     }
 
+    public function getSoftDeletesString($modelName): string
+    {
+        $data_variable = $this->str_to_lower($modelName);
+        $str = "    public function restore(\$id)" . PHP_EOL . "    {" . PHP_EOL;
+        $str .= "        \${$data_variable} = {$modelName}::onlyTrashed()->findOrFail(\$id);" . PHP_EOL;
+        $str .= "        \${$data_variable}->restore();" . PHP_EOL;
+        $str .= "        return back()->with('success', '{$modelName} Restored Successfully');" . PHP_EOL;
+        $str .= "    }" . PHP_EOL . PHP_EOL;
+        $str .= "    public function forceDelete(\$id)" . PHP_EOL . "    {" . PHP_EOL;
+        $str .= "        \${$data_variable} = {$modelName}::onlyTrashed()->findOrFail(\$id);" . PHP_EOL;
+        $str .= "        \${$data_variable}->forceDelete();" . PHP_EOL;
+        $str .= "        return back()->with('success', '{$modelName} Permanently Deleted');" . PHP_EOL;
+        $str .= "    }";
+        return $str;
+    }
+
     public function createController($controllerName, $modelName, $fields, $controllerType = "base"): string
     {
         $controllerFile = app_path('Http/Controllers') . '/' . $controllerName . '.php';
@@ -213,6 +229,11 @@ trait MethodsTrait
         $codegen_path = $this->codegen_path("stubs/controller.{$stubName}.stub");
 
         $stub = $this->controller_buffer($codegen_path, $modelName, $controllerName, $fields);
+
+        if ($this->hasOption('soft-deletes-actions') && $this->option('soft-deletes-actions')) {
+            $softDeletesCode = PHP_EOL . PHP_EOL . $this->getSoftDeletesString($modelName) . PHP_EOL . "}";
+            $stub = preg_replace('/\}\s*$/', $softDeletesCode, (string) $stub);
+        }
 
         file_put_contents($controllerFile, $stub);
 
